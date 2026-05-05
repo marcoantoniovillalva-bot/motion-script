@@ -47,16 +47,23 @@ export const OutroScene: React.FC<{ scene: MotionScriptScene }> = ({ scene }) =>
         opacity: brandOpacity,
       }}>
         {cfg.brand.logoSrc ? (
-          <Img
-            src={staticFile(cfg.brand.logoSrc)}
-            style={{
-              height: isVertical ? 56 : 42,
-              width: 'auto',
-              objectFit: 'contain',
-              filter: isDarkBg ? 'brightness(1)' : 'brightness(10)',
-              opacity: isDarkBg ? 0.9 : 0.85,
-            }}
-          />
+          <div style={{
+            background: 'rgba(0,0,0,0.35)',
+            borderRadius: 16,
+            padding: isVertical ? '14px 28px' : '10px 22px',
+            backdropFilter: 'blur(8px)',
+            border: '1px solid rgba(255,255,255,0.10)',
+          }}>
+            <Img
+              src={staticFile(cfg.brand.logoSrc)}
+              style={{
+                height: isVertical ? 72 : 54,
+                width: 'auto',
+                objectFit: 'contain',
+                display: 'block',
+              }}
+            />
+          </div>
         ) : (
           <div style={{
             color: isDarkBg ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.75)',

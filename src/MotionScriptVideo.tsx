@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { AbsoluteFill, Sequence, continueRender, delayRender, staticFile, useVideoConfig } from 'remotion';
 import { Lottie } from '@remotion/lottie';
 import type { LottieAnimationData } from '@remotion/lottie';
+import { LogoIntroScene, LOGO_INTRO_FRAMES } from './motion-components/LogoIntroScene';
 import { TitleScene } from './motion-components/TitleScene';
 import { StatScene } from './motion-components/StatScene';
 import { ListScene } from './motion-components/ListScene';
@@ -91,8 +92,14 @@ export const MotionScriptVideo: React.FC<MotionScriptProps> = (props) => {
 
   return (
     <AbsoluteFill>
+      {/* Logo intro — always first 3s */}
+      <Sequence from={0} durationInFrames={LOGO_INTRO_FRAMES}>
+        <LogoIntroScene />
+      </Sequence>
+
+      {/* Actual scenes — offset by logo intro duration */}
       {scenes.map((scene, i) => {
-        const startFrame = Math.round(scene.start * fps);
+        const startFrame = Math.round(scene.start * fps) + LOGO_INTRO_FRAMES;
         const durationFrames = Math.max(1, Math.round((scene.end - scene.start) * fps));
         return (
           <Sequence key={i} from={startFrame} durationInFrames={durationFrames}>

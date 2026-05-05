@@ -4,6 +4,7 @@ import { HorizontalVideo } from './HorizontalVideo';
 import { VerticalReel } from './VerticalReel';
 import { defaultVideoProps } from './default-props';
 import { MotionScriptVideo, defaultMotionProps } from './MotionScriptVideo';
+import { LOGO_INTRO_FRAMES } from './motion-components/LogoIntroScene';
 import type { MotionScriptProps } from './motion-script-types';
 
 export const RemotionRoot: React.FC = () => {
@@ -36,7 +37,7 @@ export const RemotionRoot: React.FC = () => {
         defaultProps={defaultMotionProps}
         calculateMetadata={({ props }: { props: MotionScriptProps }) => {
           const lastScene = props.scenes[props.scenes.length - 1];
-          const durationInFrames = Math.ceil(lastScene.end * 30);
+          const durationInFrames = Math.ceil(lastScene.end * 30) + LOGO_INTRO_FRAMES;
           return {
             durationInFrames,
             width: props.format === 'vertical' ? 1080 : 1920,

@@ -71,16 +71,29 @@ const SYSTEM_PROMPT = `Sei un esperto di motion graphics e video marketing. Tras
 
 FILOSOFIA VISIVA — REGOLA ASSOLUTA:
 - NON ESISTE una scena solo testo. Ogni scena DEVE avere un'animazione visiva principale.
-- Le immagini e le animazioni comunicano il concetto PRIMA che il testo venga letto
+- Le immagini REALI comunicano il concetto PRIMA che il testo venga letto — devono dominare il video
 - Il testo è un complemento, non il protagonista — poche parole, GRANDI visual animati
-- Quando il copione menziona una persona reale, un prodotto, un luogo → usa sempre "image"
+- Quando il copione menziona una persona reale, un prodotto, un luogo → usa SEMPRE "image"
 - Quando si mostra un sito, documentazione, repository → usa "screenshot"
-- Per TUTTI i concetti astratti (AI, dati, velocità, successo, crescita) → usa "lottie"
+- Per concetti astratti (AI, dati, velocità, successo, crescita) → usa "lottie"
 - "highlight" è PROIBITO per testo descrittivo — usalo SOLO per simboli numerici (es. "10x", "87%", "→", "∞")
+
+QUOTA IMMAGINI REALI — REGOLA CRITICA:
+- ALMENO il 35% delle scene DEVE essere di tipo "image" (foto reali)
+- Per video di 8 scene → minimo 3 scene "image"
+- Per video di 10 scene → minimo 4 scene "image"
+- Ogni fase/concetto importante del copione deve avere una foto reale che lo illustra
+- Esempi di quando usare "image":
+  * Fasi di allenamento AI → foto di server farm, GPU, ricercatori al lavoro
+  * Dati/internet → foto di data center, cavi internet sottomarini
+  * Matematica/vettori → foto di lavagne con equazioni, università
+  * Persone/team → foto di team tech, developer, uffici moderni
+  * Tecnologia specifica → foto del prodotto, screenshot del servizio
+  * Concetti scientifici → foto di laboratori, esperimenti, paper scientifici
 
 REGOLE FONDAMENTALI:
 - Restituisci SOLO JSON valido, senza markdown, senza backtick
-- 5-10 scene totali
+- 8-12 scene totali (più scene = più varietà visiva)
 - headline: massimo 4 parole
 - subtext: massimo 8 parole, solo se aggiunge valore
 - I timing devono essere contigui (end scena N = start scena N+1)
@@ -191,7 +204,7 @@ Formato: ${format}
 Titolo: ${title}
 ${imagePath ? '\nAnalizza anche l\'immagine allegata. Estrarre concetti, dati e metafore visive per arricchire le scene.' : ''}
 
-Genera il JSON. Usa liberamente i tipi "image", "screenshot" e "lottie" dove il contenuto del copione li giustifica — non limitarti a emoji e testo.`,
+Genera il JSON. RICORDA: almeno il 35% delle scene deve essere "image" con foto reali. Distribuisci le immagini durante tutto il video, non solo all'inizio. Usa "image" per ogni fase/concetto importante del copione — non limitarti a emoji e testo.`,
   }
 ];
 
