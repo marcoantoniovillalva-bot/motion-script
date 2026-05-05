@@ -1,0 +1,30 @@
+# Environment — MAI committare questi file
+.env
+.env.local
+.env.*.local
+
+# Dipendenze
+node_modules/
+.venv/
+
+# Output video (possono essere grandi)
+renders/
+
+# Asset scaricati per-progetto (foto, screenshot)
+public/footage/
+public/assets/
+public/asset-plans/
+public/asset-candidates/
+public/captions/
+
+# Props generate dall'AI (specifiche per ogni utente)
+props/
+
+# Build artifacts
+dist/
+.remotion/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini

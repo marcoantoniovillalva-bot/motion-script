@@ -1,0 +1,33 @@
+{
+  "name": "marketizzati-video-renderer",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "studio": "remotion studio src/index.ts",
+    "generate-sounds": "node generate-sounds.mjs",
+    "generate-motion-sounds": "node generate-motion-sounds.mjs",
+    "prepare-captions": "node prepare-captions.mjs",
+    "prepare-bokeh": "node scripts/create-bokeh-footage.mjs",
+    "assets:search": "node scripts/asset-search.mjs",
+    "assets:download": "node scripts/asset-download.mjs",
+    "render": "node render.mjs",
+    "render:raw": "remotion render src/index.ts VerticalReel renders/out.mp4",
+    "script:parse": "node parse-script.mjs",
+    "render:motion": "node render-motion.mjs",
+    "download-emoji": "node download-emoji.mjs",
+    "download-lottie": "node download-lottie.mjs"
+  },
+  "dependencies": {
+    "@remotion/bundler": "^4.0.448",
+    "@remotion/cli": "^4.0.448",
+    "@remotion/lottie": "^4.0.448",
+    "@remotion/renderer": "^4.0.448",
+    "ffmpeg-static": "^5.3.0",
+    "remotion": "^4.0.448"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.18",
+    "typescript": "^5.8.3"
+  }
+}
