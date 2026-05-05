@@ -2,7 +2,12 @@ export const motionConfig = {
   brand: {
     name: 'Marketizzati',
     tagline: 'Marketing + IA = Risultati',
-    logoSrc: 'brand/logo.png', // sostituisci con il tuo logo in public/brand/logo.png
+    logoSrc: 'brand/logo.png',
+    // auto-set by setup-brand.mjs based on logo aspect ratio:
+    // 'flip-3d'  → square/icon logos (ratio 0.7–1.6)
+    // 'zoom-fade'→ wide logos or unknown (ratio 1.6–2.8)
+    // 'slide-up' → wordmarks / very wide (ratio > 2.8)
+    logoAnimation: 'flip-3d' as 'flip-3d' | 'zoom-fade' | 'slide-up',
   },
   palette: {
     primary: '#FC3718',

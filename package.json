@@ -16,7 +16,8 @@
     "script:parse": "node parse-script.mjs",
     "render:motion": "node render-motion.mjs",
     "download-emoji": "node download-emoji.mjs",
-    "download-lottie": "node download-lottie.mjs"
+    "download-lottie": "node download-lottie.mjs",
+    "setup-brand": "node setup-brand.mjs"
   },
   "dependencies": {
     "@remotion/bundler": "^4.0.448",
