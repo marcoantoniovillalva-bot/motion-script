@@ -14,7 +14,7 @@ const Flip3D: React.FC<{ frame: number; fps: number; logoH: number; glowIntensit
   const p = cfg.palette;
   const flipSpring = spring({ frame, fps, config: { stiffness: 180, damping: 16, mass: 0.85 } });
   const breathe = 1 + Math.sin(frame * 0.09) * 0.018;
-  const glowHex = Math.round(glowIntensity * 60).toString(16).padStart(2, '0');
+  const glowHex = Math.round(glowIntensity * 55).toString(16).padStart(2, '0');
 
   return (
     <>
@@ -22,13 +22,13 @@ const Flip3D: React.FC<{ frame: number; fps: number; logoH: number; glowIntensit
         if (frame < delay) return null;
         const progress = Math.min(1, (frame - delay) / 58);
         const size = progress * ringMaxSize;
-        const ringOpacity = Math.pow(1 - progress, 1.4) * 0.55;
+        const ringOpacity = Math.pow(1 - progress, 1.4) * 0.45;
         return (
           <div key={i} style={{
             position: 'absolute', top: '50%', left: '50%',
             transform: 'translate(-50%, -50%)',
             width: size, height: size, borderRadius: '50%',
-            border: `1.5px solid ${p.primary}`, opacity: ringOpacity, pointerEvents: 'none',
+            border: `2px solid rgba(255,255,255,0.7)`, opacity: ringOpacity, pointerEvents: 'none',
           }} />
         );
       })}
@@ -36,7 +36,7 @@ const Flip3D: React.FC<{ frame: number; fps: number; logoH: number; glowIntensit
         position: 'absolute', top: '50%', left: '50%',
         transform: 'translate(-50%, -50%)',
         width: glowSize, height: glowSize,
-        background: `radial-gradient(circle, ${p.primary}${glowHex} 0%, transparent 65%)`,
+        background: `radial-gradient(circle, rgba(255,255,255,${glowHex}) 0%, transparent 65%)`,
         pointerEvents: 'none',
       }} />
       <AbsoluteFill style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -44,7 +44,7 @@ const Flip3D: React.FC<{ frame: number; fps: number; logoH: number; glowIntensit
           transform: `perspective(700px) rotateY(${(1 - flipSpring) * 85}deg) scale(${(0.82 + flipSpring * 0.18) * breathe})`,
           transformOrigin: 'center center',
           opacity: interpolate(frame, [0, 5], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }),
-          filter: `drop-shadow(0 0 ${Math.round(glowIntensity * 28)}px ${p.primary}cc)`,
+          filter: `drop-shadow(0 0 ${Math.round(glowIntensity * 32)}px rgba(255,255,255,0.8))`,
         }}>
           <LogoOrText logoH={logoH} />
         </div>
@@ -202,14 +202,17 @@ export const LogoIntroScene: React.FC = () => {
     { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }
   );
 
-  const logoH = isVertical ? 190 : 140;
-  const glowSize = isVertical ? 640 : 480;
-  const ringMaxSize = isVertical ? 680 : 520;
+  const logoH = isVertical ? 300 : 240;
+  const glowSize = isVertical ? 700 : 560;
+  const ringMaxSize = isVertical ? 750 : 580;
   const anim = cfg.brand.logoAnimation ?? 'flip-3d';
+
+  // Use primary color as intro background — on-brand, not all-black
+  const introBg = p.primary;
 
   return (
     <AbsoluteFill style={{ opacity: exitOpacity }}>
-      <TechBackground bg={p.dark} scanY={scanY} scanOpacity={scanOpacity} />
+      <TechBackground bg={introBg} accentColor='#ffffff' scanY={scanY} scanOpacity={scanOpacity} />
 
       {/* Corner accent lines — common to all styles */}
       {[

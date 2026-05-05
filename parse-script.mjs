@@ -67,111 +67,136 @@ const LOTTIE_CONCEPTS = [
   'check-success','clock','analytics','ai-processing','machine-learning','network-nodes',
 ];
 
+// Known brand → official interface URL (force screenshot scene)
+// Public-facing landing pages (no login required — thum.io can capture them)
+const BRAND_URLS = {
+  'chatgpt':    { url: 'https://openai.com/chatgpt',       label: 'ChatGPT' },
+  'openai':     { url: 'https://openai.com',               label: 'OpenAI' },
+  'gpt':        { url: 'https://openai.com/chatgpt',       label: 'ChatGPT' },
+  'claude':     { url: 'https://www.anthropic.com/claude', label: 'Claude AI' },
+  'anthropic':  { url: 'https://www.anthropic.com',        label: 'Anthropic' },
+  'gemini':     { url: 'https://deepmind.google/gemini',   label: 'Google Gemini' },
+  'deepseek':   { url: 'https://www.deepseek.com',         label: 'DeepSeek' },
+  'llama':      { url: 'https://ai.meta.com/llama',        label: 'Meta LLaMA' },
+  'midjourney': { url: 'https://www.midjourney.com',       label: 'Midjourney' },
+  'perplexity': { url: 'https://www.perplexity.ai',        label: 'Perplexity' },
+  'github':     { url: 'https://github.com',               label: 'GitHub' },
+  'huggingface':{ url: 'https://huggingface.co',           label: 'Hugging Face' },
+};
+
 const SYSTEM_PROMPT = `Sei un esperto di motion graphics e video marketing. Trasformi copioni testuali in strutture JSON per video animati senza voce, ricchi di contenuto visivo.
 
 FILOSOFIA VISIVA — REGOLA ASSOLUTA:
 - NON ESISTE una scena solo testo. Ogni scena DEVE avere un'animazione visiva principale.
-- Le immagini REALI comunicano il concetto PRIMA che il testo venga letto — devono dominare il video
+- Le immagini e i video REALI comunicano il concetto PRIMA che il testo venga letto — dominano il video
 - Il testo è un complemento, non il protagonista — poche parole, GRANDI visual animati
-- Quando il copione menziona una persona reale, un prodotto, un luogo → usa SEMPRE "image"
-- Quando si mostra un sito, documentazione, repository → usa "screenshot"
-- Per concetti astratti (AI, dati, velocità, successo, crescita) → usa "lottie"
 - "highlight" è PROIBITO per testo descrittivo — usalo SOLO per simboli numerici (es. "10x", "87%", "→", "∞")
 
-QUOTA IMMAGINI REALI — REGOLA CRITICA:
-- ALMENO il 35% delle scene DEVE essere di tipo "image" (foto reali)
-- Per video di 8 scene → minimo 3 scene "image"
-- Per video di 10 scene → minimo 4 scene "image"
-- Ogni fase/concetto importante del copione deve avere una foto reale che lo illustra
-- Esempi di quando usare "image":
-  * Fasi di allenamento AI → foto di server farm, GPU, ricercatori al lavoro
-  * Dati/internet → foto di data center, cavi internet sottomarini
-  * Matematica/vettori → foto di lavagne con equazioni, università
-  * Persone/team → foto di team tech, developer, uffici moderni
-  * Tecnologia specifica → foto del prodotto, screenshot del servizio
-  * Concetti scientifici → foto di laboratori, esperimenti, paper scientifici
+BRAND NOTI — REGOLA CRITICA:
+Quando il copione menziona questi brand/servizi AI, usa SEMPRE "screenshot" con l'URL ufficiale:
+- ChatGPT / OpenAI / GPT → url: "https://chat.openai.com", label: "ChatGPT"
+- Claude / Anthropic → url: "https://claude.ai", label: "Claude AI"
+- Gemini / Google AI → url: "https://gemini.google.com", label: "Google Gemini"
+- DeepSeek → url: "https://chat.deepseek.com", label: "DeepSeek"
+- LLaMA / Meta AI → url: "https://www.llama.com", label: "Meta LLaMA"
+- Midjourney → url: "https://www.midjourney.com", label: "Midjourney"
+- Perplexity → url: "https://www.perplexity.ai", label: "Perplexity"
+- GitHub → url: "https://github.com", label: "GitHub"
+- Hugging Face → url: "https://huggingface.co", label: "Hugging Face"
+NON usare "image" per questi — usa SEMPRE "screenshot" così si vede l'interfaccia reale.
+
+QUOTA CONTENUTI REALI — REGOLA CRITICA:
+- ALMENO il 35% delle scene deve usare "image", "screenshot" o "video"
+- Per immagini usa query SPECIFICHE e contestuali, NON generiche:
+  ✗ SBAGLIATO: "AI technology computer"
+  ✓ GIUSTO: "NVIDIA GPU server farm training deep learning datacenter"
+  ✓ GIUSTO: "researchers scientists working machine learning lab Stanford"
+  ✓ GIUSTO: "open source developers GitHub collaboration coding remote team"
+- "video" è per scene dinamiche: usa clip brevi di persone al lavoro, server, coding, prodotti in azione
 
 REGOLE FONDAMENTALI:
 - Restituisci SOLO JSON valido, senza markdown, senza backtick
-- 8-12 scene totali (più scene = più varietà visiva)
+- 8-12 scene totali
 - headline: massimo 4 parole
 - subtext: massimo 8 parole, solo se aggiunge valore
 - I timing devono essere contigui (end scena N = start scena N+1)
 - Durata totale ≈ parole / 2.2 secondi
-- OGNI scena deve avere il campo "bgLottie" con il concept lottie più adatto (anche se ha già un visual lottie/image/screenshot — skippato automaticamente per quelle)
+- OGNI scena deve avere "bgLottie" con il concept lottie più adatto
 
 TIPI SCENA:
 
 1. title — apertura con emoji grande
    visual: { "kind": "icon", "emoji": "🚀" }
 
-2. image — foto reale a schermo pieno (persona storica, prodotto, luogo)
-   visual: { "kind": "photo", "wikipedia": "Alan_Turing", "query": "Alan Turing mathematician portrait" }
-   → wikipedia: slug della pagina Wikipedia EN (es. "Artificial_intelligence", "Elon_Musk", "ChatGPT")
-   → query: fallback search per Pexels/Pixabay se Wikipedia non ha foto
+2. image — foto reale (persona, luogo, prodotto, hardware, team)
+   visual: { "kind": "photo", "wikipedia": "NVIDIA", "query": "NVIDIA GPU A100 server data center training" }
+   → wikipedia: slug Wikipedia EN opzionale per soggetti specifici
+   → query: descrizione SPECIFICA per Pexels (en, 3-7 parole descrittive del soggetto esatto)
 
-3. screenshot — schermata di un sito reale (Wikipedia, GitHub, prodotto ufficiale)
-   visual: { "kind": "browser", "url": "https://en.wikipedia.org/wiki/Turing_test", "label": "Wikipedia" }
-   → url: URL completo e pubblicamente accessibile
+3. screenshot — interfaccia reale di un servizio/sito
+   visual: { "kind": "browser", "url": "https://chat.openai.com", "label": "ChatGPT" }
+   → OBBLIGATORIO per tutti i brand AI noti (vedi lista sopra)
 
-4. lottie — animazione 3D per concetti astratti
+4. video — clip video breve per scene dinamiche (team, server, coding, prodotto in azione)
+   visual: { "kind": "clip", "query": "software developers coding office team collaboration" }
+   → query: descrizione in inglese per Pexels Videos (max 5-6 parole, soggetto specifico)
+   → usa per 1-3 scene per video, non di più
+
+5. lottie — animazione 3D per concetti astratti
    visual: { "kind": "lottie", "concept": "neural-network" }
    → concept uno di: ${LOTTIE_CONCEPTS.join(', ')}
 
-5. stat — numero animato
+6. stat — numero animato
    visual: { "kind": "counter", "from": 0, "to": 95, "suffix": "%", "label": "Label breve" }
 
-6. list — elenco con emoji
+7. list — elenco con emoji
    visual: { "kind": "list", "items": [{ "icon": "✅", "text": "Breve" }] }
 
-7. comparison — split screen A vs B
+8. comparison — split screen A vs B
    visual: { "kind": "comparison", "left": { "label": "Prima", "icon": "❌" }, "right": { "label": "Dopo", "icon": "✅" }, "verdict": "right" }
 
-8. flow — processo sequenziale
+9. flow — processo sequenziale
    visual: { "kind": "flow", "steps": [{ "icon": "📝", "label": "Step" }] }
 
-9. highlight — SOLO per numeri/simboli grandi (10x, 87%, →, ∞, #1)
-   visual: { "kind": "big-text", "text": "10x" }
-   ⚠️ NON usare highlight per testo descrittivo! Usa lottie con headline invece.
+10. highlight — SOLO per numeri/simboli grandi (10x, 87%, →, ∞, #1)
+    visual: { "kind": "big-text", "text": "10x" }
 
-10. code — terminale/CLI/snippet
+11. code — terminale/CLI/snippet
     visual: { "kind": "code", "lines": ["$ comando", "→ output"] }
 
-11. chat — conversazione animata con AI (usa quando si mostra una domanda/risposta, un dialogo, un esempio di AI in azione)
+12. chat — conversazione animata con AI
     visual: { "kind": "chat", "messages": [
-      { "role": "user", "text": "Come funziona questa tecnologia?" },
-      { "role": "ai", "text": "Analizza i dati in tempo reale e risponde in millisecondi." }
+      { "role": "user", "text": "Come funziona?" },
+      { "role": "ai", "text": "Elabora token uno alla volta." }
     ]}
-    → max 2 messaggi per scena, testi corti (max 12 parole per messaggio)
-    → usa per dimostrare l'utilità di un AI, mostrare un workflow, rispondere a una domanda del target
+    → max 2 messaggi, testi corti (max 12 parole)
 
-12. outro — CTA finale
+13. outro — CTA finale
     visual: { "kind": "icon", "emoji": "🎯" }
 
 TIMING:
 - title/highlight/outro: 4-6s
-- image/screenshot/lottie: 6-10s (richiedono più tempo per essere fruiti)
+- image/screenshot/video/lottie: 6-10s
 - stat/comparison: 5-7s
-- flow/list/code: 7-10s
-- chat: 7-10s (il testo deve avere tempo di "scriversi")
+- flow/list/code/chat: 7-10s
 
 EMOJI consigliati: 🤖 ⚙️ 🚀 💻 📊 🐙 🔧 📣 ✅ ❌ 💡 🎯 📈 ⚡ 🎨 🔑 💰 ⏱️ 🧩 🛠️ 📝 🔄 🌐 🎬 👥 💬 📱 🔥 ✨ 🧠 🔬 ⚖️
 
 CAMPO bgLottie (OBBLIGATORIO per title/stat/list/comparison/flow/highlight/code/outro):
-Scegli il concept lottie più adatto al contenuto della scena tra: ${LOTTIE_CONCEPTS.join(', ')}
-- scene AI/machine learning → "ai-processing" o "neural-network" o "machine-learning"
-- scene dati/crescita → "data-flow" o "chart-growth" o "analytics"
-- scene processo/configurazione → "settings" o "network-nodes"
-- scene successo/check → "check-success"
-- scene velocità/lancio → "rocket"
-- scene sicurezza → "lock-security"
-- scene tempo → "clock"
-- scene robot/automazione → "robot"
-- scene codice/terminal → "code-terminal"
-- scene idea/innovazione → "idea"
-- scene mondo/globale → "globe"
-- scene cervello/pensiero → "brain"
-- scene attenzione/problema → "warning"
+Scegli il concept lottie più adatto tra: ${LOTTIE_CONCEPTS.join(', ')}
+- AI/machine learning → "ai-processing" o "neural-network"
+- dati/crescita → "data-flow" o "chart-growth"
+- processo/config → "settings" o "network-nodes"
+- successo → "check-success"
+- velocità/lancio → "rocket"
+- sicurezza → "lock-security"
+- tempo → "clock"
+- robot/automazione → "robot"
+- codice/terminal → "code-terminal"
+- idea/innovazione → "idea"
+- globale → "globe"
+- cervello/pensiero → "brain"
+- attenzione → "warning"
 
 SCHEMA OUTPUT:
 {
@@ -329,6 +354,22 @@ for (const scene of parsed.scenes) {
 
 if (upgraded > 0) console.log(`\n  ✓ ${upgraded} scene text-only convertite in lottie`);
 
+// Auto-upgrade: if an image scene mentions a known brand → force screenshot
+let brandUpgraded = 0;
+for (const scene of parsed.scenes) {
+  if (scene.type !== 'image') continue;
+  const text = `${scene.headline ?? ''} ${scene.subtext ?? ''}`.toLowerCase();
+  for (const [key, brand] of Object.entries(BRAND_URLS)) {
+    if (text.includes(key)) {
+      scene.type = 'screenshot';
+      scene.visual = { kind: 'browser', url: brand.url, label: brand.label, src: '' };
+      brandUpgraded++;
+      console.log(`  ↑ brand: "${scene.headline}" → screenshot ${brand.label}`);
+      break;
+    }
+  }
+};
+
 // ─── Asset fetching ───────────────────────────────────────────────────────────
 
 const slug      = slugify(title);
@@ -369,6 +410,23 @@ async function fetchPexelsMany(query, count = 3) {
   if (!r) return [];
   const d = await r.json();
   return (d.photos ?? []).map(p => p.src?.original || p.src?.large2x).filter(Boolean);
+}
+
+async function fetchPexelsVideo(query, maxDuration = 12) {
+  if (!PEXELS_KEY) return null;
+  const r = await safeFetch(
+    `https://api.pexels.com/videos/search?query=${encodeURIComponent(query)}&per_page=5&orientation=landscape&size=medium`,
+    { headers: { Authorization: PEXELS_KEY } }
+  );
+  if (!r) return null;
+  const d = await r.json();
+  const videos = (d.videos ?? []).filter(v => v.duration <= maxDuration);
+  if (!videos.length) return null;
+  // Pick best: prefer HD (1280+) file
+  const video = videos[0];
+  const files = (video.video_files ?? []).sort((a, b) => b.width - a.width);
+  const hd = files.find(f => f.width >= 1280 && f.file_type === 'video/mp4') ?? files.find(f => f.file_type === 'video/mp4');
+  return hd?.link ?? null;
 }
 
 async function fetchPixabayMany(query, count = 2) {
@@ -487,6 +545,26 @@ for (let i = 0; i < parsed.scenes.length; i++) {
       console.log(`✓ (${result.source}) → ${src}`);
     } else {
       console.log(`✗ fallito (il renderer mostra placeholder)`);
+    }
+  }
+
+  else if (visual.kind === 'clip') {
+    const filename = `clip-${screenshotIdx++}.mp4`;
+    const dest     = path.join(assetBase, filename);
+    const src      = `assets/${slug}/${filename}`;
+
+    process.stdout.write(`  [${i+1}] Pexels Video "${visual.query}"... `);
+    const videoUrl = await fetchPexelsVideo(visual.query ?? 'technology office work');
+    if (videoUrl) {
+      const ok = await downloadFile(videoUrl, dest);
+      if (ok) {
+        scene.visual = { ...visual, src };
+        console.log(`✓ → ${src}`);
+      } else {
+        console.log(`✗ download fallito`);
+      }
+    } else {
+      console.log(`✗ nessun clip trovato`);
     }
   }
 

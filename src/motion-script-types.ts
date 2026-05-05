@@ -1,7 +1,7 @@
 export type SceneType =
   | 'title' | 'stat' | 'list' | 'comparison' | 'flow'
   | 'highlight' | 'code' | 'outro'
-  | 'image' | 'screenshot' | 'lottie' | 'chat';
+  | 'image' | 'screenshot' | 'lottie' | 'chat' | 'video';
 
 export type VisualContent =
   | { kind: 'icon';       emoji: string; label?: string }
@@ -17,6 +17,7 @@ export type VisualContent =
   | { kind: 'browser';    src: string; url: string; label?: string }
   | { kind: 'lottie';     src: string; loop?: boolean; speed?: number; concept?: string }
   | { kind: 'chat';       messages: { role: 'user' | 'ai'; text: string }[] }
+  | { kind: 'clip';       src: string; query?: string }
 
 export type MotionScriptScene = {
   start: number;
