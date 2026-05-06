@@ -1,5 +1,5 @@
 import React from 'react';
-import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from 'remotion';
+import { AbsoluteFill, Img, interpolate, spring, staticFile, useCurrentFrame, useVideoConfig } from 'remotion';
 import type { MotionScriptScene } from '../motion-script-types';
 
 // ─── Brand visual presets ──────────────────────────────────────────────────────
@@ -166,7 +166,7 @@ export const BrandScene: React.FC<{ scene: MotionScriptScene }> = ({ scene }) =>
   const { fps, width, height } = useVideoConfig();
   const isVertical = height > width;
 
-  const visual = scene.visual as { kind: 'brand-chat'; brand: keyof typeof BRANDS; prompt: string; response: string };
+  const visual = scene.visual as { kind: 'brand-chat'; brand: keyof typeof BRANDS; prompt: string; response: string; iconSrc?: string };
   const theme = BRANDS[visual.brand] ?? BRANDS.chatgpt;
 
   const sceneDurationFrames = Math.round((scene.end - scene.start) * fps);
@@ -361,7 +361,7 @@ export const BrandScene: React.FC<{ scene: MotionScriptScene }> = ({ scene }) =>
                     width: isVertical ? 34 : 30,
                     height: isVertical ? 34 : 30,
                     borderRadius: '50%',
-                    background: theme.avatarBg,
+                    background: visual.iconSrc ? 'rgba(255,255,255,0.12)' : theme.avatarBg,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -370,7 +370,13 @@ export const BrandScene: React.FC<{ scene: MotionScriptScene }> = ({ scene }) =>
                     fontSize: 13,
                     fontFamily,
                     fontWeight: 700,
-                  }}>{theme.avatar}</div>
+                    overflow: 'hidden',
+                    padding: visual.iconSrc ? 3 : 0,
+                  }}>
+                    {visual.iconSrc
+                      ? <Img src={staticFile(visual.iconSrc)} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                      : theme.avatar}
+                  </div>
 
                   <div style={{
                     background: theme.aiBubbleBg,

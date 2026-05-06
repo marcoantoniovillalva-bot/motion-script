@@ -47,10 +47,12 @@ if (!apiKey || apiKey.startsWith('sk-or-...')) {
   process.exit(1);
 }
 
-const PEXELS_KEY   = process.env.PEXELS_API_KEY;
-const PIXABAY_KEY  = process.env.PIXABAY_API_KEY;
-const APIFY_TOKEN  = process.env.APIFY_API_TOKEN;
-const MODEL        = 'anthropic/claude-sonnet-4-5';
+const PEXELS_KEY      = process.env.PEXELS_API_KEY;
+const PIXABAY_KEY     = process.env.PIXABAY_API_KEY;
+const APIFY_TOKEN     = process.env.APIFY_API_TOKEN;
+const VECTEEZY_ID     = process.env.VECTEEZY_API_ID;
+const VECTEEZY_SECRET = process.env.VECTEEZY_API_SECRET;
+const MODEL           = 'anthropic/claude-sonnet-4-5';
 const BASE_URL     = 'https://openrouter.ai/api/v1/chat/completions';
 
 const scriptText      = await readFile(path.resolve(__dirname, inputPath), 'utf-8');
@@ -415,6 +417,73 @@ async function downloadFile(url, dest) {
   return true;
 }
 
+// ─── Vecteezy API ────────────────────────────────────────────────────────────
+
+// Queries per brand AI → icone 3D logo
+const BRAND_VECTEEZY_QUERIES = {
+  chatgpt:    'ChatGPT OpenAI logo icon 3d',
+  claude:     'Anthropic Claude AI logo 3d icon',
+  gemini:     'Google Gemini AI logo icon 3d colorful',
+  deepseek:   'DeepSeek AI logo icon technology',
+  meta:       'Meta AI Llama logo icon 3d blue',
+  perplexity: 'Perplexity AI search logo icon',
+};
+
+let _vecteezyToken  = null;
+let _vecteezyExpiry = 0;
+
+async function getVecteezyToken() {
+  if (!VECTEEZY_ID || !VECTEEZY_SECRET) return null;
+  if (_vecteezyToken && Date.now() < _vecteezyExpiry) return _vecteezyToken;
+  try {
+    const r = await safeFetch('https://www.vecteezy.com/api/v1/oauth/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: `grant_type=client_credentials&client_id=${VECTEEZY_ID}&client_secret=${encodeURIComponent(VECTEEZY_SECRET)}`,
+    });
+    if (!r) { console.warn('  Vecteezy: token request failed'); return null; }
+    const d = await r.json();
+    if (!d.access_token) { console.warn('  Vecteezy: no access_token in response'); return null; }
+    _vecteezyToken  = d.access_token;
+    _vecteezyExpiry = Date.now() + ((d.expires_in ?? 3600) - 60) * 1000;
+    return _vecteezyToken;
+  } catch (e) { console.warn('  Vecteezy token error:', e.message); return null; }
+}
+
+async function vecteezySearch(query, contentType = 'photo') {
+  const token = await getVecteezyToken();
+  if (!token) return [];
+  try {
+    const r = await safeFetch(
+      `https://www.vecteezy.com/api/v1/resources?term=${encodeURIComponent(query)}&content_type=${contentType}&page=1&per_page=5`,
+      { headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' } }
+    );
+    if (!r) return [];
+    const d = await r.json();
+    // Handle various possible response shapes
+    return d.resources ?? d.data ?? d.photos ?? d.videos ?? d.results ?? [];
+  } catch { return []; }
+}
+
+function extractVecteezyUrl(item) {
+  if (!item) return null;
+  // Prefer highest-quality URL available
+  return item.download_url ?? item.preview_url ?? item.thumbnail_url
+    ?? item.image_url ?? item.video_url ?? item.file_url ?? null;
+}
+
+async function fetchVecteezyPNG(query) {
+  const items = await vecteezySearch(query, 'photo');
+  return extractVecteezyUrl(items[0]);
+}
+
+async function fetchVecteezyVideo(query) {
+  const items = await vecteezySearch(query, 'video');
+  return extractVecteezyUrl(items[0]);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 async function fetchWikipediaPhoto(wikipediaSlug) {
   const r = await safeFetch(
     `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(wikipediaSlug)}`
@@ -537,6 +606,14 @@ for (let i = 0; i < parsed.scenes.length; i++) {
       console.log(pixabay.length > 0 ? `✓ (${pixabay.length})` : '✗');
     }
 
+    // 4. Vecteezy — illustrazioni tech/AI di qualità se ancora poche immagini
+    if (photoUrls.length < 2 && visual.query) {
+      process.stdout.write(`  [${i+1}] Vecteezy "${visual.query}"... `);
+      const vUrl = await fetchVecteezyPNG(visual.query);
+      if (vUrl) { photoUrls.push(vUrl); console.log('✓ (Vecteezy)'); }
+      else console.log('✗');
+    }
+
     // Download all collected URLs (up to 4 images per scene)
     const savedSrcs = [];
     for (const photoUrl of photoUrls.slice(0, 4)) {
@@ -571,23 +648,54 @@ for (let i = 0; i < parsed.scenes.length; i++) {
     }
   }
 
-  else if (visual.kind === 'clip') {
-    const filename = `clip-${screenshotIdx++}.mp4`;
-    const dest     = path.join(assetBase, filename);
-    const src      = `assets/${slug}/${filename}`;
-
-    process.stdout.write(`  [${i+1}] Pexels Video "${visual.query}"... `);
-    const videoUrl = await fetchPexelsVideo(visual.query ?? 'technology office work');
-    if (videoUrl) {
-      const ok = await downloadFile(videoUrl, dest);
+  else if (visual.kind === 'brand-chat') {
+    const query = BRAND_VECTEEZY_QUERIES[visual.brand] ?? `${visual.brand} AI logo icon 3d`;
+    process.stdout.write(`  [${i+1}] Vecteezy icon "${visual.brand}"... `);
+    const iconUrl = await fetchVecteezyPNG(query);
+    if (iconUrl) {
+      const filename = `brand-icon-${i}.jpg`;
+      const dest     = path.join(assetBase, filename);
+      const src      = `assets/${slug}/${filename}`;
+      const ok = await downloadFile(iconUrl, dest);
       if (ok) {
-        scene.visual = { ...visual, src };
+        scene.visual = { ...visual, iconSrc: src };
         console.log(`✓ → ${src}`);
       } else {
         console.log(`✗ download fallito`);
       }
     } else {
-      console.log(`✗ nessun clip trovato`);
+      console.log(`✗ non trovato (avatar testo fallback)`);
+    }
+  }
+
+  else if (visual.kind === 'clip') {
+    const filename = `clip-${screenshotIdx++}.mp4`;
+    const dest     = path.join(assetBase, filename);
+    const src      = `assets/${slug}/${filename}`;
+
+    // 1. Pexels Videos (primary)
+    process.stdout.write(`  [${i+1}] Pexels Video "${visual.query}"... `);
+    let videoUrl = await fetchPexelsVideo(visual.query ?? 'technology office work');
+    if (videoUrl) {
+      console.log('✓ (Pexels)');
+    } else {
+      console.log('✗');
+      // 2. Vecteezy Videos (fallback)
+      process.stdout.write(`  [${i+1}] Vecteezy Video fallback "${visual.query}"... `);
+      videoUrl = await fetchVecteezyVideo(visual.query ?? 'technology office work');
+      console.log(videoUrl ? '✓ (Vecteezy)' : '✗');
+    }
+
+    if (videoUrl) {
+      const ok = await downloadFile(videoUrl, dest);
+      if (ok) {
+        scene.visual = { ...visual, src };
+        console.log(`       → ${src}`);
+      } else {
+        console.log(`  [${i+1}] ✗ download video fallito`);
+      }
+    } else {
+      console.log(`  [${i+1}] ✗ nessun clip trovato`);
     }
   }
 

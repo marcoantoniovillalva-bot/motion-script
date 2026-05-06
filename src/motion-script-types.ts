@@ -18,7 +18,7 @@ export type VisualContent =
   | { kind: 'lottie';     src: string; loop?: boolean; speed?: number; concept?: string }
   | { kind: 'chat';       messages: { role: 'user' | 'ai'; text: string }[] }
   | { kind: 'clip';       src: string; query?: string }
-  | { kind: 'brand-chat'; brand: 'chatgpt' | 'claude' | 'gemini' | 'deepseek' | 'meta' | 'perplexity'; prompt: string; response: string }
+  | { kind: 'brand-chat'; brand: 'chatgpt' | 'claude' | 'gemini' | 'deepseek' | 'meta' | 'perplexity'; prompt: string; response: string; iconSrc?: string }
 
 export type MotionScriptScene = {
   start: number;
