@@ -435,32 +435,25 @@ let _vecteezyExpiry = 0;
 async function getVecteezyToken() {
   if (!VECTEEZY_ID || !VECTEEZY_SECRET) return null;
   if (_vecteezyToken && Date.now() < _vecteezyExpiry) return _vecteezyToken;
-  try {
-    const r = await safeFetch('https://www.vecteezy.com/api/v1/oauth/token', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: `grant_type=client_credentials&client_id=${VECTEEZY_ID}&client_secret=${encodeURIComponent(VECTEEZY_SECRET)}`,
-    });
-    if (!r) { console.warn('  Vecteezy: token request failed'); return null; }
-    const d = await r.json();
-    if (!d.access_token) { console.warn('  Vecteezy: no access_token in response'); return null; }
-    _vecteezyToken  = d.access_token;
-    _vecteezyExpiry = Date.now() + ((d.expires_in ?? 3600) - 60) * 1000;
-    return _vecteezyToken;
-  } catch (e) { console.warn('  Vecteezy token error:', e.message); return null; }
+  // Vecteezy API key is used directly as "Token {secret}" — no OAuth needed
+  _vecteezyToken  = VECTEEZY_SECRET;
+  _vecteezyExpiry = Date.now() + 86400 * 1000; // treat as permanent
+  return _vecteezyToken;
 }
 
 async function vecteezySearch(query, contentType = 'photo') {
   const token = await getVecteezyToken();
   if (!token) return [];
+  // V1 requires "Token {key}" auth; V2 paths are 404 — wait for Vecteezy docs
+  const authHeader = `Token ${token}`;
   try {
     const r = await safeFetch(
-      `https://www.vecteezy.com/api/v1/resources?term=${encodeURIComponent(query)}&content_type=${contentType}&page=1&per_page=5`,
-      { headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' } }
+      `https://api.vecteezy.com/v1/resources?term=${encodeURIComponent(query)}&content_type=${contentType}&page=1&per_page=5&license_type=free`,
+      { headers: { Authorization: authHeader, Accept: 'application/json' } }
     );
     if (!r) return [];
     const d = await r.json();
-    // Handle various possible response shapes
+    if (d.errors) { console.warn(`  Vecteezy: ${d.errors[0]?.message}`); return []; }
     return d.resources ?? d.data ?? d.photos ?? d.videos ?? d.results ?? [];
   } catch { return []; }
 }
