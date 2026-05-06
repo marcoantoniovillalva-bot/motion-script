@@ -16,10 +16,11 @@ import { ScreenshotScene } from './motion-components/ScreenshotScene';
 import { LottieScene } from './motion-components/LottieScene';
 import { ChatScene } from './motion-components/ChatScene';
 import { VideoScene } from './motion-components/VideoScene';
+import { BrandScene } from './motion-components/BrandScene';
 import type { MotionScriptProps, MotionScriptScene } from './motion-script-types';
 
 // Scene types that already have their own full-screen visual content — skip bgLottie overlay
-const SKIP_BG_LOTTIE = new Set(['image', 'screenshot', 'lottie', 'chat', 'video']);
+const SKIP_BG_LOTTIE = new Set(['image', 'screenshot', 'lottie', 'chat', 'video', 'brand']);
 
 const BgLottieOverlay: React.FC<{ concept: string }> = ({ concept }) => {
   const [data, setData] = useState<LottieAnimationData | null>(null);
@@ -74,6 +75,7 @@ const SceneDispatcher: React.FC<{ scene: MotionScriptScene }> = ({ scene }) => {
     case 'lottie':      return <LottieScene scene={scene} />;
     case 'chat':        return <ChatScene scene={scene} />;
     case 'video':       return <VideoScene scene={scene} />;
+    case 'brand':       return <BrandScene scene={scene} />;
     default:            return <HighlightScene scene={scene} />;
   }
 };

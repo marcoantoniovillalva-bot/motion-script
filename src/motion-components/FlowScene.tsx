@@ -1,6 +1,7 @@
 import React from 'react';
 import { AbsoluteFill, Audio, Sequence, interpolate, spring, staticFile, useCurrentFrame, useVideoConfig } from 'remotion';
 import { motionConfig } from '../motion-config';
+import { getTextColor, getSubtextColor, getTextShadow } from '../colorUtils';
 import type { MotionScriptScene } from '../motion-script-types';
 import { Emoji3D } from './Emoji3D';
 import { TechBackground } from './TechBackground';
@@ -42,13 +43,14 @@ export const FlowScene: React.FC<{ scene: MotionScriptScene }> = ({ scene }) => 
       }}>
         {scene.headline && (
           <div style={{
-            color: 'rgba(255,255,255,0.5)',
+            color: getSubtextColor(scene.bg),
             fontFamily: cfg.fonts.code,
             fontSize: headlineSize,
             letterSpacing: '4px',
             textTransform: 'uppercase',
             opacity: headlineOpacity,
             marginBottom: 8,
+            textShadow: getTextShadow(scene.bg),
           }}>
             {scene.headline}
           </div>
@@ -98,11 +100,12 @@ export const FlowScene: React.FC<{ scene: MotionScriptScene }> = ({ scene }) => 
                 {/* Step label */}
                 <div style={{ flex: 1 }}>
                   <div style={{
-                    color: '#FFFFFF',
+                    color: getTextColor(scene.bg),
                     fontFamily: cfg.fonts.body,
                     fontSize: labelSize,
                     fontWeight: 700,
                     letterSpacing: '0.3px',
+                    textShadow: getTextShadow(scene.bg),
                   }}>
                     {step.label}
                   </div>
@@ -145,12 +148,13 @@ export const FlowScene: React.FC<{ scene: MotionScriptScene }> = ({ scene }) => 
 
         {scene.subtext && (
           <div style={{
-            color: 'rgba(255,255,255,0.35)',
+            color: getSubtextColor(scene.bg),
             fontFamily: cfg.fonts.body,
             fontSize: isVertical ? 28 : 22,
             textAlign: 'center',
-            opacity: headlineOpacity,
+            opacity: headlineOpacity * 0.6,
             marginTop: 8,
+            textShadow: getTextShadow(scene.bg),
           }}>
             {scene.subtext}
           </div>

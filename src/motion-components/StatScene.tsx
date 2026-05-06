@@ -1,6 +1,7 @@
 import React from 'react';
 import { AbsoluteFill, Audio, Sequence, interpolate, spring, staticFile, useCurrentFrame, useVideoConfig } from 'remotion';
 import { motionConfig } from '../motion-config';
+import { getTextColor, getSubtextColor, getTextShadow } from '../colorUtils';
 import type { MotionScriptScene } from '../motion-script-types';
 import { TechBackground } from './TechBackground';
 import { useTechTransition } from './useTechTransition';
@@ -89,13 +90,14 @@ export const StatScene: React.FC<{ scene: MotionScriptScene }> = ({ scene }) => 
       }}>
         {scene.headline && (
           <div style={{
-            color: 'rgba(255,255,255,0.5)',
+            color: getSubtextColor(scene.bg),
             fontFamily: cfg.fonts.code,
             fontSize: headlineSize,
             fontWeight: 400,
             textTransform: 'uppercase',
             letterSpacing: '5px',
             opacity: labelOpacity,
+            textShadow: getTextShadow(scene.bg),
           }}>
             {scene.headline}
           </div>
@@ -117,9 +119,10 @@ export const StatScene: React.FC<{ scene: MotionScriptScene }> = ({ scene }) => 
           <span style={{
             fontSize: numSize,
             fontFamily: cfg.fonts.headline,
-            color: '#FFFFFF',
+            color: getTextColor(scene.bg),
             fontWeight: 900,
             lineHeight: 1,
+            textShadow: getTextShadow(scene.bg),
           }}>
             {currentVal}
           </span>
@@ -132,13 +135,14 @@ export const StatScene: React.FC<{ scene: MotionScriptScene }> = ({ scene }) => 
 
         {visual.kind === 'counter' && (
           <div style={{
-            color: 'rgba(255,255,255,0.65)',
+            color: getSubtextColor(scene.bg),
             fontFamily: cfg.fonts.body,
             fontSize: labelSize,
             fontWeight: 600,
             textAlign: 'center',
             opacity: labelOpacity,
             letterSpacing: '1px',
+            textShadow: getTextShadow(scene.bg),
           }}>
             {visual.label}
           </div>

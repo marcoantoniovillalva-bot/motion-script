@@ -1,6 +1,7 @@
 import React from 'react';
 import { AbsoluteFill, Audio, Sequence, spring, staticFile, useCurrentFrame, useVideoConfig } from 'remotion';
 import { motionConfig } from '../motion-config';
+import { getTextColor, getSubtextColor, getTextShadow } from '../colorUtils';
 import type { MotionScriptScene } from '../motion-script-types';
 import { Emoji3D } from './Emoji3D';
 import { TechBackground } from './TechBackground';
@@ -56,13 +57,14 @@ export const ComparisonScene: React.FC<{ scene: MotionScriptScene }> = ({ scene 
       }}>
         {scene.headline && (
           <div style={{
-            color: 'rgba(255,255,255,0.5)',
+            color: getSubtextColor(scene.bg),
             fontFamily: cfg.fonts.code,
             fontSize: headlineSize,
             letterSpacing: '4px',
             textTransform: 'uppercase',
             textAlign: 'center',
             opacity: headlineOpacity,
+            textShadow: getTextShadow(scene.bg),
           }}>
             {scene.headline}
           </div>
@@ -88,13 +90,14 @@ export const ComparisonScene: React.FC<{ scene: MotionScriptScene }> = ({ scene 
           }}>
             <Emoji3D emoji={visual.left?.icon ?? ''} size={iconSize} />
             <div style={{
-              color: leftWin ? '#FFFFFF' : 'rgba(255,255,255,0.55)',
+              color: leftWin ? getTextColor(scene.bg) : getSubtextColor(scene.bg),
               fontFamily: cfg.fonts.headline,
               fontSize: labelSize,
               fontWeight: 900,
               textAlign: 'center',
               textTransform: 'uppercase',
               letterSpacing: '1px',
+              textShadow: getTextShadow(scene.bg),
             }}>
               {visual.left?.label}
             </div>
@@ -148,13 +151,14 @@ export const ComparisonScene: React.FC<{ scene: MotionScriptScene }> = ({ scene 
           }}>
             <Emoji3D emoji={visual.right?.icon ?? ''} size={iconSize} />
             <div style={{
-              color: rightWin ? '#FFFFFF' : 'rgba(255,255,255,0.55)',
+              color: rightWin ? getTextColor(scene.bg) : getSubtextColor(scene.bg),
               fontFamily: cfg.fonts.headline,
               fontSize: labelSize,
               fontWeight: 900,
               textAlign: 'center',
               textTransform: 'uppercase',
               letterSpacing: '1px',
+              textShadow: getTextShadow(scene.bg),
             }}>
               {visual.right?.label}
             </div>
@@ -173,11 +177,12 @@ export const ComparisonScene: React.FC<{ scene: MotionScriptScene }> = ({ scene 
 
         {scene.subtext && (
           <div style={{
-            color: 'rgba(255,255,255,0.35)',
+            color: getSubtextColor(scene.bg),
             fontFamily: cfg.fonts.body,
             fontSize: isVertical ? 28 : 22,
             textAlign: 'center',
-            opacity: headlineOpacity,
+            opacity: headlineOpacity * 0.6,
+            textShadow: getTextShadow(scene.bg),
           }}>
             {scene.subtext}
           </div>

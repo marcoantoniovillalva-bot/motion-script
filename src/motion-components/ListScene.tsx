@@ -1,6 +1,7 @@
 import React from 'react';
 import { AbsoluteFill, Audio, Sequence, spring, staticFile, useCurrentFrame, useVideoConfig } from 'remotion';
 import { motionConfig } from '../motion-config';
+import { getTextColor, getSubtextColor, getTextShadow } from '../colorUtils';
 import type { MotionScriptScene } from '../motion-script-types';
 import { Emoji3D } from './Emoji3D';
 import { TechBackground } from './TechBackground';
@@ -41,7 +42,7 @@ export const ListScene: React.FC<{ scene: MotionScriptScene }> = ({ scene }) => 
       }}>
         {scene.headline && (
           <div style={{
-            color: 'rgba(255,255,255,0.55)',
+            color: getSubtextColor(scene.bg),
             fontFamily: cfg.fonts.code,
             fontSize: headlineSize,
             letterSpacing: '4px',
@@ -49,6 +50,7 @@ export const ListScene: React.FC<{ scene: MotionScriptScene }> = ({ scene }) => 
             opacity: headlineOpacity,
             borderLeft: `3px solid ${p.primary}`,
             paddingLeft: 20,
+            textShadow: getTextShadow(scene.bg),
           }}>
             {scene.headline}
           </div>
@@ -79,11 +81,12 @@ export const ListScene: React.FC<{ scene: MotionScriptScene }> = ({ scene }) => 
               >
                 <Emoji3D emoji={item.icon} size={iconSize} />
                 <span style={{
-                  color: '#FFFFFF',
+                  color: getTextColor(scene.bg),
                   fontFamily: cfg.fonts.body,
                   fontSize: textSize,
                   fontWeight: 600,
                   letterSpacing: '0.3px',
+                  textShadow: getTextShadow(scene.bg),
                 }}>
                   {item.text}
                 </span>

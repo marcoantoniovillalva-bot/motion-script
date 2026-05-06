@@ -1,6 +1,7 @@
 import React from 'react';
 import { AbsoluteFill, Audio, Img, Sequence, spring, staticFile, useCurrentFrame, useVideoConfig } from 'remotion';
 import { motionConfig } from '../motion-config';
+import { getTextColor, getSubtextColor, getTextShadow } from '../colorUtils';
 import type { MotionScriptScene } from '../motion-script-types';
 import { Emoji3D } from './Emoji3D';
 import { TechBackground } from './TechBackground';
@@ -63,7 +64,7 @@ export const TitleScene: React.FC<{ scene: MotionScriptScene }> = ({ scene }) =>
 
         {scene.headline && (
           <div style={{
-            color: '#FFFFFF',
+            color: getTextColor(scene.bg),
             fontFamily: cfg.fonts.headline,
             fontSize: headlineSize,
             fontWeight: 900,
@@ -73,7 +74,7 @@ export const TitleScene: React.FC<{ scene: MotionScriptScene }> = ({ scene }) =>
             textTransform: 'uppercase',
             transform: `translateY(${(1 - headlineY) * 60}px)`,
             opacity: headlineY,
-            textShadow: '0 2px 20px rgba(0,0,0,0.6)',
+            textShadow: getTextShadow(scene.bg),
           }}>
             {scene.headline}
           </div>
@@ -90,12 +91,13 @@ export const TitleScene: React.FC<{ scene: MotionScriptScene }> = ({ scene }) =>
 
         {scene.subtext && (
           <div style={{
-            color: 'rgba(255,255,255,0.55)',
+            color: getSubtextColor(scene.bg),
             fontFamily: cfg.fonts.body,
             fontSize: subtextSize,
             textAlign: 'center',
             opacity: subtextOpacity,
             letterSpacing: '0.5px',
+            textShadow: getTextShadow(scene.bg),
           }}>
             {scene.subtext}
           </div>

@@ -1,6 +1,7 @@
 import React from 'react';
 import { AbsoluteFill, Audio, Sequence, interpolate, spring, staticFile, useCurrentFrame, useVideoConfig } from 'remotion';
 import { motionConfig } from '../motion-config';
+import { getTextColor, getSubtextColor, getTextShadow } from '../colorUtils';
 import type { MotionScriptScene } from '../motion-script-types';
 import { Emoji3D } from './Emoji3D';
 import { TechBackground } from './TechBackground';
@@ -90,7 +91,7 @@ export const HighlightScene: React.FC<{ scene: MotionScriptScene }> = ({ scene }
 
         {scene.headline && (
           <div style={{
-            color: 'rgba(255,255,255,0.8)',
+            color: getTextColor(bgColor),
             fontFamily: cfg.fonts.headline,
             fontSize: headlineSize,
             fontWeight: 900,
@@ -98,6 +99,7 @@ export const HighlightScene: React.FC<{ scene: MotionScriptScene }> = ({ scene }
             textTransform: 'uppercase',
             letterSpacing: '3px',
             opacity: subtextOpacity,
+            textShadow: getTextShadow(bgColor),
           }}>
             {scene.headline}
           </div>
@@ -105,12 +107,13 @@ export const HighlightScene: React.FC<{ scene: MotionScriptScene }> = ({ scene }
 
         {scene.subtext && (
           <div style={{
-            color: 'rgba(255,255,255,0.4)',
+            color: getSubtextColor(bgColor),
             fontFamily: cfg.fonts.code,
             fontSize: subtextSize,
             textAlign: 'center',
-            opacity: subtextOpacity,
+            opacity: subtextOpacity * 0.7,
             letterSpacing: '2px',
+            textShadow: getTextShadow(bgColor),
           }}>
             {scene.subtext}
           </div>

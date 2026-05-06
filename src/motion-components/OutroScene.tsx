@@ -1,6 +1,7 @@
 import React from 'react';
 import { AbsoluteFill, Audio, Img, Sequence, spring, staticFile, useCurrentFrame, useVideoConfig } from 'remotion';
 import { motionConfig } from '../motion-config';
+import { isLightColor } from '../colorUtils';
 import type { MotionScriptScene } from '../motion-script-types';
 import { Emoji3D } from './Emoji3D';
 import { TechBackground } from './TechBackground';
@@ -23,7 +24,7 @@ export const OutroScene: React.FC<{ scene: MotionScriptScene }> = ({ scene }) =>
 
   // Use primary red as default bg for outro — override via scene.bg
   const bgColor = scene.bg ?? p.primary;
-  const isDarkBg = bgColor === p.dark || bgColor === '#090909' || bgColor.startsWith('#0');
+  const isDarkBg = !isLightColor(bgColor);
 
   const isVertical = height > width;
   const ctaSize = isVertical ? 110 : 90;

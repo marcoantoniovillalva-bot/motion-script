@@ -93,17 +93,16 @@ FILOSOFIA VISIVA — REGOLA ASSOLUTA:
 - "highlight" è PROIBITO per testo descrittivo — usalo SOLO per simboli numerici (es. "10x", "87%", "→", "∞")
 
 BRAND NOTI — REGOLA CRITICA:
-Quando il copione menziona questi brand/servizi AI, usa SEMPRE "screenshot" con l'URL ufficiale:
-- ChatGPT / OpenAI / GPT → url: "https://chat.openai.com", label: "ChatGPT"
-- Claude / Anthropic → url: "https://claude.ai", label: "Claude AI"
-- Gemini / Google AI → url: "https://gemini.google.com", label: "Google Gemini"
-- DeepSeek → url: "https://chat.deepseek.com", label: "DeepSeek"
-- LLaMA / Meta AI → url: "https://www.llama.com", label: "Meta LLaMA"
-- Midjourney → url: "https://www.midjourney.com", label: "Midjourney"
-- Perplexity → url: "https://www.perplexity.ai", label: "Perplexity"
-- GitHub → url: "https://github.com", label: "GitHub"
-- Hugging Face → url: "https://huggingface.co", label: "Hugging Face"
-NON usare "image" per questi — usa SEMPRE "screenshot" così si vede l'interfaccia reale.
+Quando il copione menziona brand AI noti, usa "brand" per mostrare la loro interfaccia animata:
+- ChatGPT / OpenAI / GPT → type: "brand", visual: { "kind": "brand-chat", "brand": "chatgpt", "prompt": "...", "response": "..." }
+- Claude / Anthropic → brand: "claude"
+- Gemini / Google AI → brand: "gemini"
+- DeepSeek → brand: "deepseek"
+- Meta AI / LLaMA → brand: "meta"
+- Perplexity → brand: "perplexity"
+Per "prompt" usa una domanda breve (max 10 parole) dal contesto del copione.
+Per "response" usa una risposta breve e pertinente (max 15 parole).
+NON usare "image" o "screenshot" per questi brand — "brand" mostra l'interfaccia reale animata.
 
 QUOTA CONTENUTI REALI — REGOLA CRITICA:
 - ALMENO il 35% delle scene deve usare "image", "screenshot" o "video"
@@ -354,17 +353,41 @@ for (const scene of parsed.scenes) {
 
 if (upgraded > 0) console.log(`\n  ✓ ${upgraded} scene text-only convertite in lottie`);
 
-// Auto-upgrade: if an image scene mentions a known brand → force screenshot
+// Strip light backgrounds (would hide white text)
+function isLightHex(hex) {
+  if (!hex?.startsWith('#') || hex.length < 7) return false;
+  const r = parseInt(hex.slice(1,3), 16), g = parseInt(hex.slice(3,5), 16), b = parseInt(hex.slice(5,7), 16);
+  return (0.299*r + 0.587*g + 0.114*b) > 145;
+}
+let bgFixed = 0;
+for (const scene of parsed.scenes) {
+  if (scene.bg && isLightHex(scene.bg)) {
+    console.log(`  ⚠ bg "${scene.bg}" troppo chiaro → rimosso (${scene.headline ?? scene.type})`);
+    delete scene.bg;
+    bgFixed++;
+  }
+}
+if (bgFixed > 0) console.log(`  ✓ ${bgFixed} sfondi chiari corretti`);
+
+// Auto-upgrade: if an image/screenshot scene mentions a known brand → brand mock UI
+const BRAND_CHAT_MAP = {
+  'chatgpt': 'chatgpt', 'openai': 'chatgpt', 'gpt': 'chatgpt',
+  'claude': 'claude', 'anthropic': 'claude',
+  'gemini': 'gemini', 'google ai': 'gemini',
+  'deepseek': 'deepseek',
+  'llama': 'meta', 'meta ai': 'meta',
+  'perplexity': 'perplexity',
+};
 let brandUpgraded = 0;
 for (const scene of parsed.scenes) {
-  if (scene.type !== 'image') continue;
+  if (scene.type !== 'image' && scene.type !== 'screenshot') continue;
   const text = `${scene.headline ?? ''} ${scene.subtext ?? ''}`.toLowerCase();
-  for (const [key, brand] of Object.entries(BRAND_URLS)) {
+  for (const [key, brandId] of Object.entries(BRAND_CHAT_MAP)) {
     if (text.includes(key)) {
-      scene.type = 'screenshot';
-      scene.visual = { kind: 'browser', url: brand.url, label: brand.label, src: '' };
+      scene.type = 'brand';
+      scene.visual = { kind: 'brand-chat', brand: brandId, prompt: 'Come posso usarti al meglio?', response: 'Scrivi prompt chiari e specifici per ottenere risultati ottimali.' };
       brandUpgraded++;
-      console.log(`  ↑ brand: "${scene.headline}" → screenshot ${brand.label}`);
+      console.log(`  ↑ brand: "${scene.headline}" → mock UI ${brandId}`);
       break;
     }
   }
