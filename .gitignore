@@ -28,3 +28,22 @@ dist/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Lavorazione talking-head (intermedi pesanti per-video)
+raw-edits/
+public/raw-edits/
+public/broll/
+"Video da editare di esempio/"
+Video da editare di esempio/
+
+# File temporanei di verifica/anteprima a root
+hook-riser-*.mp4
+*.png
+__pycache__/
+scripts/__pycache__/
+.agents/
+
+# Font a licenza personale (non ridistribuibile) + modulo generato che lo embedda
+public/fonts/Montra.otf
+src/talking-head-fonts-data.ts
+.claude/settings.local.json

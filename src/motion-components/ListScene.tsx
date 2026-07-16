@@ -1,10 +1,12 @@
 import React from 'react';
 import { AbsoluteFill, Audio, Sequence, spring, staticFile, useCurrentFrame, useVideoConfig } from 'remotion';
 import { motionConfig } from '../motion-config';
-import { getTextColor, getSubtextColor, getTextShadow } from '../colorUtils';
+import { getTextColor, getSubtextColor, getTextShadow, isLightColor } from '../colorUtils';
 import type { MotionScriptScene } from '../motion-script-types';
 import { Emoji3D } from './Emoji3D';
 import { TechBackground } from './TechBackground';
+import { LightBackground } from './LightBackground';
+import { GlassCard } from './GlassCard';
 import { useTechTransition } from './useTechTransition';
 
 export const ListScene: React.FC<{ scene: MotionScriptScene }> = ({ scene }) => {
@@ -22,23 +24,27 @@ export const ListScene: React.FC<{ scene: MotionScriptScene }> = ({ scene }) => 
   const staggerFrames = Math.max(8, Math.round(((scene.end - scene.start) * fps * 0.7) / Math.max(items.length, 1)));
 
   const isVertical = height > width;
-  const headlineSize = isVertical ? 44 : 36;
-  const iconSize = isVertical ? 48 : 38;
-  const textSize = isVertical ? 36 : 28;
-  const cardGap = isVertical ? 16 : 12;
+  const isLight = isLightColor(scene.bg ?? '#090909');
+  const headlineSize = isVertical ? 52 : 50;
+  const iconSize = isVertical ? 74 : 60;
+  const textSize = isVertical ? 46 : 40;
+  const cardGap = isVertical ? 28 : 14;
 
   return (
     <AbsoluteFill>
-      <TechBackground bg={scene.bg} scanY={scanY} scanOpacity={scanOpacity} />
+      {isLight
+        ? <LightBackground scanY={scanY} scanOpacity={scanOpacity} />
+        : <TechBackground bg={scene.bg} scanY={scanY} scanOpacity={scanOpacity} />
+      }
 
       <AbsoluteFill style={{
         ...techStyle,
         display: 'flex',
         flexDirection: 'column',
-        alignItems: 'flex-start',
+        alignItems: 'center',
         justifyContent: 'center',
-        padding: isVertical ? '80px 56px' : '60px 100px',
-        gap: isVertical ? 32 : 24,
+        padding: isVertical ? '80px 56px' : '60px 80px',
+        gap: isVertical ? 44 : 24,
       }}>
         {scene.headline && (
           <div style={{
@@ -51,12 +57,14 @@ export const ListScene: React.FC<{ scene: MotionScriptScene }> = ({ scene }) => 
             borderLeft: `3px solid ${p.primary}`,
             paddingLeft: 20,
             textShadow: getTextShadow(scene.bg),
+            width: '100%',
+            maxWidth: isVertical ? undefined : 920,
           }}>
             {scene.headline}
           </div>
         )}
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: cardGap, width: '100%' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: cardGap, width: '100%', maxWidth: isVertical ? undefined : 920 }}>
           {items.map((item, i) => {
             const itemFrame = Math.max(0, frame - i * staggerFrames);
             const itemSpring = spring({ frame: itemFrame, fps, config: { stiffness: 200, damping: 16, mass: 0.8 } });
@@ -67,14 +75,21 @@ export const ListScene: React.FC<{ scene: MotionScriptScene }> = ({ scene }) => 
                   display: 'flex',
                   alignItems: 'center',
                   gap: isVertical ? 20 : 16,
-                  background: 'rgba(255,255,255,0.06)',
-                  borderRadius: 12,
-                  padding: isVertical ? '18px 24px' : '14px 20px',
-                  borderLeft: `4px solid ${p.primary}`,
-                  border: `1px solid rgba(255,255,255,0.08)`,
-                  borderLeftColor: p.primary,
-                  borderLeftWidth: 4,
-                  boxShadow: `inset 0 0 0 0 transparent, 0 4px 24px rgba(0,0,0,0.3)`,
+                  ...(isLight ? {
+                    background: 'rgba(255,255,255,0.58)',
+                    backdropFilter: 'blur(20px)',
+                    WebkitBackdropFilter: 'blur(20px)',
+                    border: `1px solid rgba(255,255,255,0.82)`,
+                    borderLeft: `4px solid ${p.primary}`,
+                    boxShadow: `0 4px 20px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.95)`,
+                  } : {
+                    background: 'rgba(255,255,255,0.06)',
+                    border: `1px solid rgba(255,255,255,0.08)`,
+                    borderLeft: `4px solid ${p.primary}`,
+                    boxShadow: `0 4px 24px rgba(0,0,0,0.3)`,
+                  }),
+                  borderRadius: 16,
+                  padding: isVertical ? '28px 32px' : '14px 20px',
                   transform: `translateX(${(1 - itemSpring) * -60}px)`,
                   opacity: itemSpring,
                 }}

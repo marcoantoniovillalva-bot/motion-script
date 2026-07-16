@@ -44,6 +44,8 @@ export const VideoScene: React.FC<{ scene: MotionScriptScene }> = ({ scene }) =>
             background: `${p.primary}18`,
             mixBlendMode: 'multiply',
           }} />
+          {/* Uniform scrim — deepens washed-out / low-contrast clips */}
+          <AbsoluteFill style={{ background: 'rgba(0,0,0,0.28)' }} />
         </AbsoluteFill>
       ) : (
         <AbsoluteFill style={{ backgroundColor: p.dark }} />

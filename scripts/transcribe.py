@@ -128,8 +128,21 @@ def main():
     parser = argparse.ArgumentParser(description="Generate Remotion captions with faster-whisper.")
     parser.add_argument("--input", required=True, help="Input video/audio file")
     parser.add_argument("--output", required=True, help="Output captions JSON")
-    parser.add_argument("--model", default="small", help="Whisper model: tiny, base, small, medium")
+    # large-v3 (was small): the small model misheard brand names and whole verbs on real
+    # footage ("Lo ha" for "Claude ha", "saltare" for "strutturare") — errors no
+    # downstream correction can reliably fix. Slower (~10 min per 2-min video on CPU) but
+    # transcription runs once per video and accuracy here protects every later stage.
+    parser.add_argument("--model", default="large-v3", help="Whisper model: tiny, base, small, medium, large-v3")
     parser.add_argument("--language", default="it", help="Language code, default it")
+    parser.add_argument(
+        "--initial-prompt",
+        default=(
+            "Trascrizione di un video di marketing sull'intelligenza artificiale. "
+            "Termini ricorrenti: Claude, Anthropic, ChatGPT, OpenAI, Make, N8N, API, IDE, "
+            "agenti IA, automazione, chiavi di accesso, infrastruttura cloud, commenta la parola AGENTE."
+        ),
+        help="Domain glossary fed to Whisper — biases decoding toward the channel's recurring brand names and phrases",
+    )
     args = parser.parse_args()
 
     input_path = Path(args.input)
@@ -155,10 +168,12 @@ def main():
         language=args.language,
         word_timestamps=True,
         vad_filter=False,
+        initial_prompt=args.initial_prompt or None,
     )
 
     chunks = []
     raw_segments = []
+    all_words = []
     for segment in segments:
         raw_segments.append(
             {
@@ -178,8 +193,20 @@ def main():
                 if clean_word(word.word)
             ]
             chunks.extend(chunk_words(words))
+            all_words.extend(words)
         else:
             chunks.extend(chunk_segment_text(segment.text, segment.start, segment.end))
+            # No per-word timestamps from this segment — prorate evenly so `words` stays complete.
+            seg_words = [clean_word(w) for w in re.split(r"\s+", segment.text or "") if clean_word(w)]
+            if seg_words:
+                duration = max(float(segment.end) - float(segment.start), 0.8)
+                step = duration / len(seg_words)
+                for i, w in enumerate(seg_words):
+                    all_words.append({
+                        "start": round(float(segment.start) + step * i, 3),
+                        "end": round(float(segment.start) + step * (i + 1), 3),
+                        "word": w,
+                    })
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output = {
@@ -190,6 +217,7 @@ def main():
         "duration": getattr(info, "duration", None),
         "chunks": chunks,
         "segments": raw_segments,
+        "words": [{"start": round(w["start"], 3), "end": round(w["end"], 3), "word": w["word"]} for w in all_words],
     }
     output_path.write_text(json.dumps(output, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(f"Captions written: {output_path}")

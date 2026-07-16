@@ -20,7 +20,8 @@ import { BrandScene } from './motion-components/BrandScene';
 import type { MotionScriptProps, MotionScriptScene } from './motion-script-types';
 
 // Scene types that already have their own full-screen visual content — skip bgLottie overlay
-const SKIP_BG_LOTTIE = new Set(['image', 'screenshot', 'lottie', 'chat', 'video', 'brand']);
+// 'code' included: the terminal window is the focus; a bg lottie muddies it.
+const SKIP_BG_LOTTIE = new Set(['image', 'screenshot', 'lottie', 'chat', 'video', 'brand', 'code']);
 
 const BgLottieOverlay: React.FC<{ concept: string }> = ({ concept }) => {
   const [data, setData] = useState<LottieAnimationData | null>(null);
@@ -94,16 +95,25 @@ export const MotionScriptVideo: React.FC<MotionScriptProps> = (props) => {
   const { fps } = useVideoConfig();
   const { scenes } = props;
 
+  // Vertical (Reels/Shorts): logo animation plays at the END as a sign-off.
+  // Horizontal: logo intro plays first, as before.
+  const isVertical = props.format === 'vertical';
+  const contentFrames = scenes.length
+    ? Math.round(scenes[scenes.length - 1].end * fps)
+    : 0;
+  const contentOffset = isVertical ? 0 : LOGO_INTRO_FRAMES;
+  const logoFrom = isVertical ? contentFrames : 0;
+
   return (
     <AbsoluteFill>
-      {/* Logo intro — always first 3s */}
-      <Sequence from={0} durationInFrames={LOGO_INTRO_FRAMES}>
+      {/* Logo animation — end for vertical, intro for horizontal */}
+      <Sequence from={logoFrom} durationInFrames={LOGO_INTRO_FRAMES}>
         <LogoIntroScene />
       </Sequence>
 
-      {/* Actual scenes — offset by logo intro duration */}
+      {/* Actual scenes — offset by logo intro only when it plays first */}
       {scenes.map((scene, i) => {
-        const startFrame = Math.round(scene.start * fps) + LOGO_INTRO_FRAMES;
+        const startFrame = Math.round(scene.start * fps) + contentOffset;
         const durationFrames = Math.max(1, Math.round((scene.end - scene.start) * fps));
         return (
           <Sequence key={i} from={startFrame} durationInFrames={durationFrames}>

@@ -52,6 +52,8 @@ const PIXABAY_KEY     = process.env.PIXABAY_API_KEY;
 const APIFY_TOKEN     = process.env.APIFY_API_TOKEN;
 const VECTEEZY_ID     = process.env.VECTEEZY_API_ID;
 const VECTEEZY_SECRET = process.env.VECTEEZY_API_SECRET;
+// Vecteezy V2: VECTEEZY_API_ID (account id, path segment) + VECTEEZY_API_SECRET (Bearer).
+// No separate V2 key needed — see scripts/vecteezy-client.ts for the verified endpoints.
 const MODEL           = 'anthropic/claude-sonnet-4-5';
 const BASE_URL     = 'https://openrouter.ai/api/v1/chat/completions';
 
@@ -102,9 +104,11 @@ Quando il copione menziona brand AI noti, usa "brand" per mostrare la loro inter
 - DeepSeek → brand: "deepseek"
 - Meta AI / LLaMA → brand: "meta"
 - Perplexity → brand: "perplexity"
-Per "prompt" usa una domanda breve (max 10 parole) dal contesto del copione.
-Per "response" usa una risposta breve e pertinente (max 15 parole).
+Per "prompt" usa una domanda breve (max 10 parole) STRETTAMENTE legata all'argomento concreto del copione.
+Per "response" usa una risposta breve e pertinente (max 15 parole) coerente con quel punto del copione.
+VIETATO usare frasi generiche o passe-partout tipo "Come posso usarti al meglio?" o "Scrivi prompt chiari e specifici". La conversazione deve parlare DELLO STESSO tema della scena.
 NON usare "image" o "screenshot" per questi brand — "brand" mostra l'interfaccia reale animata.
+LIMITE: massimo 3 scene "brand" per video. NON ripetere lo stesso brand con domande simili o ravvicinate — varia argomento e distribuiscile nel video.
 
 QUOTA CONTENUTI REALI — REGOLA CRITICA:
 - ALMENO il 35% delle scene deve usare "image", "screenshot" o "video"
@@ -155,6 +159,9 @@ TIPI SCENA:
 
 8. comparison — split screen A vs B
    visual: { "kind": "comparison", "left": { "label": "Prima", "icon": "❌" }, "right": { "label": "Dopo", "icon": "✅" }, "verdict": "right" }
+   → USA SOLO per DUE concetti realmente contrapposti (prima/dopo, giusto/sbagliato).
+   → Se i concetti sono 3 o più, oppure sono COMPLEMENTARI (nessun vincitore), usa "flow" o "list" invece di comparison.
+   → Ometti "verdict" quando non c'è un vero vincitore (evita falsi "VINCITORE").
 
 9. flow — processo sequenziale
    visual: { "kind": "flow", "steps": [{ "icon": "📝", "label": "Step" }] }
@@ -171,6 +178,7 @@ TIPI SCENA:
       { "role": "ai", "text": "Elabora token uno alla volta." }
     ]}
     → max 2 messaggi, testi corti (max 12 parole)
+    → domanda e risposta DEVONO riguardare l'argomento specifico del copione, MAI frasi generiche
 
 13. outro — CTA finale
     visual: { "kind": "icon", "emoji": "🎯" }
@@ -230,7 +238,8 @@ Formato: ${format}
 Titolo: ${title}
 ${imagePath ? '\nAnalizza anche l\'immagine allegata. Estrarre concetti, dati e metafore visive per arricchire le scene.' : ''}
 
-Genera il JSON. RICORDA: almeno il 35% delle scene deve essere "image" con foto reali. Distribuisci le immagini durante tutto il video, non solo all'inizio. Usa "image" per ogni fase/concetto importante del copione — non limitarti a emoji e testo.`,
+Genera il JSON. RICORDA: almeno il 35% delle scene deve essere "image" con foto reali. Distribuisci le immagini durante tutto il video, non solo all'inizio. Usa "image" per ogni fase/concetto importante del copione — non limitarti a emoji e testo.
+${format === 'vertical' ? `\nSTILE VERTICALE LIGHT: usa SEMPRE "bg" con colori chiari per tutte le scene NON-image ECCETTO "chat" e "code" (che richiedono sfondo scuro): "#FBFAF8" (cream principale), "#FEE9E5" (rosa caldo), "#F5F0EB" (caldo neutro). Alternale per varietà. Le scene "image" non hanno bg. NON usare mai sfondi scuri nel formato verticale (eccetto chat/code).` : ''}${format === 'horizontal' ? `\nSTILE ORIZZONTALE LIGHT: usa SEMPRE "bg" con colori chiari per tutte le scene NON-image ECCETTO "chat" e "code" (che richiedono sfondo scuro): "#FBFAF8" (cream principale), "#FEE9E5" (rosa caldo), "#F5F0EB" (caldo neutro). Alternale per varietà. Le scene "image" non hanno bg. NON usare mai sfondi scuri nel formato orizzontale (eccetto chat/code). Questo garantisce uno stile chiaro e leggibile anche sul formato wide.` : ''}`,
   }
 ];
 
@@ -265,7 +274,7 @@ const response = await fetch(BASE_URL, {
       { role: 'user',   content: userContent },
     ],
     temperature: 0.3,
-    max_tokens:  4096,
+    max_tokens:  8192,
   }),
 });
 
@@ -288,6 +297,30 @@ parsed.title  = title;
 parsed.format = format;
 
 if (!parsed.scenes?.length) { console.error('Nessuna scena valida.'); process.exit(1); }
+
+// ─── Fix double-encoded UTF-8 (happens when Latin-1 bytes are re-encoded as UTF-8) ──
+function fixDoubleEncoding(s) {
+  if (typeof s !== 'string') return s;
+  // Detect both 2-byte sequences (Ã¹ = ù, Ã— = ×) and 4-byte emoji sequences (ðŸ = 🔥 etc.)
+  if (!/[\xC2-\xC5\xF0][\x80-\xBF]/.test(s)) return s;
+  try {
+    const bytes = Buffer.from(s, 'latin1');
+    const fixed = bytes.toString('utf-8');
+    if (fixed.includes('�')) return s; // replacement char → decoding failed
+    return fixed;
+  } catch { return s; }
+}
+function normalizeEncoding(val) {
+  if (typeof val === 'string') return fixDoubleEncoding(val);
+  if (Array.isArray(val)) return val.map(normalizeEncoding);
+  if (val && typeof val === 'object') {
+    const out = {};
+    for (const [k, v] of Object.entries(val)) out[k] = normalizeEncoding(v);
+    return out;
+  }
+  return val;
+}
+parsed = normalizeEncoding(parsed);
 
 // ─── Post-processing: auto-upgrade text-only scenes ──────────────────────────
 
@@ -355,21 +388,31 @@ for (const scene of parsed.scenes) {
 
 if (upgraded > 0) console.log(`\n  ✓ ${upgraded} scene text-only convertite in lottie`);
 
-// Strip light backgrounds (would hide white text)
 function isLightHex(hex) {
   if (!hex?.startsWith('#') || hex.length < 7) return false;
   const r = parseInt(hex.slice(1,3), 16), g = parseInt(hex.slice(3,5), 16), b = parseInt(hex.slice(5,7), 16);
   return (0.299*r + 0.587*g + 0.114*b) > 145;
 }
-let bgFixed = 0;
+
+// Scenes that require dark background regardless of format (their components force dark internally)
+const DARK_REQUIRED_TYPES = ['chat', 'code'];
+
+// Both vertical and horizontal use light backgrounds — components handle isLightColor() internally
+const LIGHT_BGS = ['#FBFAF8', '#FEE9E5', '#F5F0EB', '#FBFAF8', '#FEE9E5'];
+let forced = 0;
 for (const scene of parsed.scenes) {
-  if (scene.bg && isLightHex(scene.bg)) {
-    console.log(`  ⚠ bg "${scene.bg}" troppo chiaro → rimosso (${scene.headline ?? scene.type})`);
-    delete scene.bg;
-    bgFixed++;
+  if (['image', 'screenshot', 'video'].includes(scene.type)) continue;
+  if (DARK_REQUIRED_TYPES.includes(scene.type)) {
+    // Remove any light bg the AI might have set — these scenes always render dark
+    if (scene.bg && isLightHex(scene.bg)) delete scene.bg;
+    continue;
+  }
+  if (!scene.bg || !isLightHex(scene.bg)) {
+    scene.bg = LIGHT_BGS[forced % LIGHT_BGS.length];
+    forced++;
   }
 }
-if (bgFixed > 0) console.log(`  ✓ ${bgFixed} sfondi chiari corretti`);
+if (forced > 0) console.log(`  ✓ ${forced} scene con sfondo light forzato (formato ${format})`);
 
 // Auto-upgrade: if an image/screenshot scene mentions a known brand → brand mock UI
 const BRAND_CHAT_MAP = {
@@ -380,20 +423,116 @@ const BRAND_CHAT_MAP = {
   'llama': 'meta', 'meta ai': 'meta',
   'perplexity': 'perplexity',
 };
+const BRAND_NAMES = {
+  chatgpt: 'ChatGPT', claude: 'Claude', gemini: 'Gemini',
+  deepseek: 'DeepSeek', meta: 'Meta AI', perplexity: 'Perplexity',
+};
+// Phrases we must never ship — the old hardcoded generic fallback
+const GENERIC_CHAT_MARKERS = ['come posso usarti al meglio', 'scrivi prompt chiari e specifici', 'per ottenere risultati ottimali'];
+function isGenericChat(prompt, response) {
+  const t = `${prompt ?? ''} ${response ?? ''}`.toLowerCase();
+  return !prompt || !response || GENERIC_CHAT_MARKERS.some(m => t.includes(m));
+}
+
+// Generate a micro-conversation coherent with the copione for a given brand.
+// Falls back to null on any error — caller then derives from scene text.
+async function generateBrandChat(brandId, hint) {
+  const brandName = BRAND_NAMES[brandId] ?? 'AI';
+  try {
+    const r = await fetch(BASE_URL, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': 'https://github.com/marketizzati',
+        'X-Title': 'Marketizzati Motion Script',
+      },
+      body: JSON.stringify({
+        model: MODEL,
+        messages: [
+          { role: 'system', content: `Sei un copywriter. Data una tematica, scrivi UNA micro-conversazione realistica tra un utente e ${brandName}. Rispondi SOLO con JSON valido, senza markdown: {"prompt":"domanda dell'utente","response":"risposta dell'AI"}. REGOLE: prompt max 11 parole, response max 18 parole, in italiano, SPECIFICI e strettamente coerenti con la tematica indicata. VIETATO usare frasi generiche tipo "come posso usarti al meglio" o "scrivi prompt chiari e specifici". La domanda deve riguardare l'argomento concreto del copione.` },
+          { role: 'user', content: `TEMATICA DI QUESTA SCENA: ${hint}\n\nCONTESTO (copione completo):\n${scriptText}` },
+        ],
+        temperature: 0.5,
+        max_tokens: 300,
+      }),
+      signal: AbortSignal.timeout(30000),
+    });
+    if (!r.ok) return null;
+    const d = await r.json();
+    const raw = d.choices?.[0]?.message?.content ?? '';
+    const m = raw.match(/\{[\s\S]*\}/);
+    if (!m) return null;
+    const obj = JSON.parse(m[0]);
+    if (obj.prompt && obj.response && !isGenericChat(obj.prompt, obj.response)) {
+      return { prompt: String(obj.prompt).trim(), response: String(obj.response).trim() };
+    }
+  } catch {}
+  return null;
+}
+
 let brandUpgraded = 0;
+let brandFixed = 0;
+const LIGHT_BGS_BRAND = ['#FBFAF8', '#FEE9E5', '#F5F0EB'];
+let brandLightIdx = 0;
+
+// Pass 1 — upgrade image/screenshot scenes that name a brand into a brand mock UI
 for (const scene of parsed.scenes) {
   if (scene.type !== 'image' && scene.type !== 'screenshot') continue;
   const text = `${scene.headline ?? ''} ${scene.subtext ?? ''}`.toLowerCase();
   for (const [key, brandId] of Object.entries(BRAND_CHAT_MAP)) {
     if (text.includes(key)) {
+      const hint = `${scene.headline ?? ''} — ${scene.subtext ?? ''}`.trim();
+      const chat = await generateBrandChat(brandId, hint);
       scene.type = 'brand';
-      scene.visual = { kind: 'brand-chat', brand: brandId, prompt: 'Come posso usarti al meglio?', response: 'Scrivi prompt chiari e specifici per ottenere risultati ottimali.' };
+      scene.visual = {
+        kind: 'brand-chat',
+        brand: brandId,
+        prompt: chat?.prompt ?? (scene.headline ? `${scene.headline}?` : 'Spiegami questo argomento'),
+        response: chat?.response ?? (scene.subtext || scene.headline || ''),
+      };
+      // Force light bg on brand scenes when vertical
+      if (format === 'vertical' && (!scene.bg || !isLightHex(scene.bg))) {
+        scene.bg = LIGHT_BGS_BRAND[brandLightIdx++ % LIGHT_BGS_BRAND.length];
+      }
       brandUpgraded++;
-      console.log(`  ↑ brand: "${scene.headline}" → mock UI ${brandId}`);
+      console.log(`  ↑ brand: "${scene.headline}" → mock UI ${brandId} (chat ${chat ? 'AI-coerente' : 'da testo scena'})`);
       break;
     }
   }
-};
+}
+
+// Normalize — any scene whose visual is a brand-chat MUST have type 'brand', otherwise the
+// renderer dispatches it as screenshot/image and shows a BLANK page. Fixes AI type/kind mismatches.
+let brandNormalized = 0;
+for (const scene of parsed.scenes) {
+  if (scene.visual?.kind === 'brand-chat' && scene.type !== 'brand') {
+    const oldType = scene.type;
+    scene.type = 'brand';
+    if (format === 'vertical' && (!scene.bg || !isLightHex(scene.bg))) {
+      scene.bg = LIGHT_BGS_BRAND[brandLightIdx++ % LIGHT_BGS_BRAND.length];
+    }
+    brandNormalized++;
+    console.log(`  ⚙ normalizzato "${scene.headline}" ${oldType}→brand (era incoerente)`);
+  }
+}
+if (brandNormalized > 0) console.log(`  ✓ ${brandNormalized} scene brand normalizzate (evita pagina bianca)`);
+
+// Pass 2 — repair brand scenes the AI emitted directly if their chat is empty/generic
+for (const scene of parsed.scenes) {
+  if (scene.type !== 'brand' || scene.visual?.kind !== 'brand-chat') continue;
+  if (!isGenericChat(scene.visual.prompt, scene.visual.response)) continue;
+  const brandId = scene.visual.brand ?? 'chatgpt';
+  const hint = `${scene.headline ?? ''} — ${scene.subtext ?? ''}`.trim();
+  const chat = await generateBrandChat(brandId, hint);
+  if (chat) {
+    scene.visual.prompt = chat.prompt;
+    scene.visual.response = chat.response;
+    brandFixed++;
+    console.log(`  ✎ brand chat resa coerente: "${scene.headline}" (${brandId})`);
+  }
+}
+if (brandFixed > 0) console.log(`  ✓ ${brandFixed} chat brand corrette (erano generiche/vuote)`);
 
 // ─── Asset fetching ───────────────────────────────────────────────────────────
 
@@ -429,40 +568,51 @@ const BRAND_VECTEEZY_QUERIES = {
   perplexity: 'Perplexity AI search logo icon',
 };
 
-let _vecteezyToken  = null;
-let _vecteezyExpiry = 0;
+let _vecteezyWarned    = false;
+let _vecteezyDisabled  = false;
 
-async function getVecteezyToken() {
-  if (!VECTEEZY_ID || !VECTEEZY_SECRET) return null;
-  if (_vecteezyToken && Date.now() < _vecteezyExpiry) return _vecteezyToken;
-  // Vecteezy API key is used directly as "Token {secret}" — no OAuth needed
-  _vecteezyToken  = VECTEEZY_SECRET;
-  _vecteezyExpiry = Date.now() + 86400 * 1000; // treat as permanent
-  return _vecteezyToken;
-}
-
+// V2 endpoint shape verified live 2026-07-15 (see scripts/vecteezy-client.ts, the typed
+// standalone client): account_id goes in the PATH and the account SECRET works directly
+// as Bearer token. The previous V1 `Token` auth is rejected for this account ("V1 API
+// usage is not permitted") — that's why Vecteezy never returned results before.
 async function vecteezySearch(query, contentType = 'photo') {
-  const token = await getVecteezyToken();
-  if (!token) return [];
-  // V1 requires "Token {key}" auth; V2 paths are 404 — wait for Vecteezy docs
-  const authHeader = `Token ${token}`;
+  if (_vecteezyDisabled || !VECTEEZY_ID || !VECTEEZY_SECRET) return [];
+  const url = `https://api.vecteezy.com/v2/${VECTEEZY_ID}/resources?term=${encodeURIComponent(query)}&content_type=${contentType}&page=1&per_page=5`;
   try {
-    const r = await safeFetch(
-      `https://api.vecteezy.com/v1/resources?term=${encodeURIComponent(query)}&content_type=${contentType}&page=1&per_page=5&license_type=free`,
-      { headers: { Authorization: authHeader, Accept: 'application/json' } }
-    );
+    const r = await safeFetch(url, { headers: { Authorization: `Bearer ${VECTEEZY_SECRET}`, Accept: 'application/json' } });
     if (!r) return [];
     const d = await r.json();
-    if (d.errors) { console.warn(`  Vecteezy: ${d.errors[0]?.message}`); return []; }
-    return d.resources ?? d.data ?? d.photos ?? d.videos ?? d.results ?? [];
-  } catch { return []; }
+    if (d.errors) {
+      if (!_vecteezyWarned) {
+        console.warn(`  ⚠ Vecteezy non disponibile: "${d.errors[0]?.message ?? 'unknown'}"`);
+        _vecteezyWarned = true;
+        _vecteezyDisabled = true;
+      }
+      return [];
+    }
+    return d.resources ?? [];
+  } catch {
+    return [];
+  }
 }
 
-function extractVecteezyUrl(item) {
+// The search response has no direct file URL — a separate call returns a signed one.
+async function vecteezyDownloadUrl(resourceId) {
+  try {
+    const r = await safeFetch(`https://api.vecteezy.com/v2/${VECTEEZY_ID}/resources/${resourceId}/download`, {
+      headers: { Authorization: `Bearer ${VECTEEZY_SECRET}`, Accept: 'application/json' },
+    });
+    if (!r) return null;
+    const d = await r.json();
+    return d.url ?? null;
+  } catch {
+    return null;
+  }
+}
+
+async function extractVecteezyUrl(item) {
   if (!item) return null;
-  // Prefer highest-quality URL available
-  return item.download_url ?? item.preview_url ?? item.thumbnail_url
-    ?? item.image_url ?? item.video_url ?? item.file_url ?? null;
+  return (item.id ? await vecteezyDownloadUrl(item.id) : null) ?? item.thumbnail_url ?? null;
 }
 
 async function fetchVecteezyPNG(query) {

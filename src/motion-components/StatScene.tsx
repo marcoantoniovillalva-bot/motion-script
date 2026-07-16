@@ -1,9 +1,11 @@
 import React from 'react';
 import { AbsoluteFill, Audio, Sequence, interpolate, spring, staticFile, useCurrentFrame, useVideoConfig } from 'remotion';
 import { motionConfig } from '../motion-config';
-import { getTextColor, getSubtextColor, getTextShadow } from '../colorUtils';
+import { getTextColor, getSubtextColor, getTextShadow, isLightColor } from '../colorUtils';
 import type { MotionScriptScene } from '../motion-script-types';
 import { TechBackground } from './TechBackground';
+import { LightBackground } from './LightBackground';
+import { GlassCard } from './GlassCard';
 import { useTechTransition } from './useTechTransition';
 
 export const StatScene: React.FC<{ scene: MotionScriptScene }> = ({ scene }) => {
@@ -13,6 +15,7 @@ export const StatScene: React.FC<{ scene: MotionScriptScene }> = ({ scene }) => 
   const p = cfg.palette;
 
   const { style: techStyle, scanY, scanOpacity } = useTechTransition({ sceneDuration: scene.end - scene.start });
+  const isLight = isLightColor(scene.bg ?? '#090909');
 
   const sceneDuration = (scene.end - scene.start) * fps;
   const countDuration = sceneDuration * 0.72;
@@ -29,36 +32,121 @@ export const StatScene: React.FC<{ scene: MotionScriptScene }> = ({ scene }) => 
   const ringRotation = interpolate(frame, [0, sceneDuration], [0, 90], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
 
   const isVertical = height > width;
-  const numSize = isVertical ? 200 : 160;
-  const suffixSize = isVertical ? 80 : 64;
-  const labelSize = isVertical ? 40 : 32;
-  const headlineSize = isVertical ? 38 : 30;
+  const numSize = isVertical ? 220 : 250;
+  const suffixSize = isVertical ? 96 : 104;
+  const labelSize = isVertical ? 48 : 54;
+  const headlineSize = isVertical ? 42 : 46;
   const ringSize = isVertical ? 700 : 560;
 
   const tickInterval = Math.max(2, Math.round(countDuration / Math.max(1, Math.abs(to - from))));
   const tickCount = Math.floor(countDuration / tickInterval);
   const ticks = Array.from({ length: Math.min(tickCount, 40) }, (_, i) => i * tickInterval);
 
+  // Ring colors adapt to light/dark mode
+  const ringBorder   = isLight ? `1px solid ${p.primary}18`       : `2px solid ${p.primary}30`;
+  const ringTickColor = isLight ? `${p.primary}28`                 : `${p.primary}66`;
+  const ring2Border  = isLight ? `1px solid ${p.coral}12`          : `1px solid ${p.coral}22`;
+  const ring3Border  = isLight ? `1px dashed rgba(0,0,0,0.06)`     : `1px dashed ${p.primary}18`;
+  const numberGlow   = isLight ? 'none'                            : `drop-shadow(0 0 30px ${p.primary}66)`;
+
+  const counterBlock = (
+    <>
+      {scene.headline && (
+        <div style={{
+          color: getSubtextColor(scene.bg),
+          fontFamily: cfg.fonts.code,
+          fontSize: headlineSize,
+          fontWeight: 400,
+          textTransform: 'uppercase',
+          letterSpacing: '5px',
+          opacity: labelOpacity,
+          textShadow: getTextShadow(scene.bg),
+        }}>
+          {scene.headline}
+        </div>
+      )}
+
+      <div style={{
+        display: 'flex',
+        alignItems: 'baseline',
+        transform: `scale(${badgeScale})`,
+        transformOrigin: 'center',
+        filter: numberGlow,
+      }}>
+        {visual.kind === 'counter' && visual.prefix && (
+          <span style={{ fontSize: suffixSize, fontFamily: cfg.fonts.headline, color: p.coral, fontWeight: 900 }}>
+            {visual.prefix}
+          </span>
+        )}
+        <span style={{
+          fontSize: numSize,
+          fontFamily: cfg.fonts.headline,
+          color: getTextColor(scene.bg),
+          fontWeight: 900,
+          lineHeight: 1,
+          textShadow: getTextShadow(scene.bg),
+        }}>
+          {currentVal}
+        </span>
+        {visual.kind === 'counter' && visual.suffix && (
+          <span style={{ fontSize: suffixSize, fontFamily: cfg.fonts.headline, color: p.primary, fontWeight: 900 }}>
+            {visual.suffix}
+          </span>
+        )}
+      </div>
+
+      {visual.kind === 'counter' && (
+        <div style={{
+          color: getSubtextColor(scene.bg),
+          fontFamily: cfg.fonts.body,
+          fontSize: labelSize,
+          fontWeight: 600,
+          textAlign: 'center',
+          opacity: labelOpacity,
+          letterSpacing: '1px',
+          textShadow: getTextShadow(scene.bg),
+        }}>
+          {visual.label}
+        </div>
+      )}
+
+      {scene.subtext && (
+        <div style={{
+          color: isLight ? 'rgba(28,28,30,0.45)' : 'rgba(255,255,255,0.35)',
+          fontFamily: cfg.fonts.body,
+          fontSize: isVertical ? 30 : 24,
+          textAlign: 'center',
+          opacity: labelOpacity,
+          marginTop: 8,
+        }}>
+          {scene.subtext}
+        </div>
+      )}
+    </>
+  );
+
   return (
     <AbsoluteFill>
-      <TechBackground bg={scene.bg} scanY={scanY} scanOpacity={scanOpacity} />
+      {isLight
+        ? <LightBackground scanY={scanY} scanOpacity={scanOpacity} />
+        : <TechBackground bg={scene.bg} scanY={scanY} scanOpacity={scanOpacity} />
+      }
 
       {/* HUD rings */}
       <AbsoluteFill style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
         <div style={{
           width: ringSize, height: ringSize,
           borderRadius: '50%',
-          border: `2px solid ${p.primary}30`,
+          border: ringBorder,
           transform: `rotate(${ringRotation}deg)`,
           position: 'relative',
         }}>
-          {/* Ring tick marks */}
           {[0, 45, 90, 135, 180, 225, 270, 315].map((deg) => (
             <div key={deg} style={{
               position: 'absolute',
               top: '50%', left: '50%',
               width: 8, height: 2,
-              backgroundColor: `${p.primary}66`,
+              backgroundColor: ringTickColor,
               transformOrigin: `${-ringSize / 2 + 4}px 0`,
               transform: `rotate(${deg}deg) translateX(${-ringSize / 2 + 4}px)`,
             }} />
@@ -68,14 +156,14 @@ export const StatScene: React.FC<{ scene: MotionScriptScene }> = ({ scene }) => 
           position: 'absolute',
           width: ringSize * 0.76, height: ringSize * 0.76,
           borderRadius: '50%',
-          border: `1px solid ${p.coral}22`,
+          border: ring2Border,
           transform: `rotate(${-ringRotation * 0.6}deg)`,
         }} />
         <div style={{
           position: 'absolute',
           width: ringSize * 0.55, height: ringSize * 0.55,
           borderRadius: '50%',
-          border: `1px dashed ${p.primary}18`,
+          border: ring3Border,
         }} />
       </AbsoluteFill>
 
@@ -88,78 +176,17 @@ export const StatScene: React.FC<{ scene: MotionScriptScene }> = ({ scene }) => 
         padding: isVertical ? '80px 60px' : '60px 80px',
         gap: isVertical ? 16 : 12,
       }}>
-        {scene.headline && (
-          <div style={{
-            color: getSubtextColor(scene.bg),
-            fontFamily: cfg.fonts.code,
-            fontSize: headlineSize,
-            fontWeight: 400,
-            textTransform: 'uppercase',
-            letterSpacing: '5px',
-            opacity: labelOpacity,
-            textShadow: getTextShadow(scene.bg),
+        {isLight ? (
+          <GlassCard style={{
+            padding: isVertical ? '40px 56px' : '36px 72px',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: isVertical ? 14 : 10,
           }}>
-            {scene.headline}
-          </div>
-        )}
-
-        {/* Counter */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'baseline',
-          transform: `scale(${badgeScale})`,
-          transformOrigin: 'center',
-          filter: `drop-shadow(0 0 30px ${p.primary}66)`,
-        }}>
-          {visual.kind === 'counter' && visual.prefix && (
-            <span style={{ fontSize: suffixSize, fontFamily: cfg.fonts.headline, color: p.coral, fontWeight: 900 }}>
-              {visual.prefix}
-            </span>
-          )}
-          <span style={{
-            fontSize: numSize,
-            fontFamily: cfg.fonts.headline,
-            color: getTextColor(scene.bg),
-            fontWeight: 900,
-            lineHeight: 1,
-            textShadow: getTextShadow(scene.bg),
-          }}>
-            {currentVal}
-          </span>
-          {visual.kind === 'counter' && visual.suffix && (
-            <span style={{ fontSize: suffixSize, fontFamily: cfg.fonts.headline, color: p.primary, fontWeight: 900 }}>
-              {visual.suffix}
-            </span>
-          )}
-        </div>
-
-        {visual.kind === 'counter' && (
-          <div style={{
-            color: getSubtextColor(scene.bg),
-            fontFamily: cfg.fonts.body,
-            fontSize: labelSize,
-            fontWeight: 600,
-            textAlign: 'center',
-            opacity: labelOpacity,
-            letterSpacing: '1px',
-            textShadow: getTextShadow(scene.bg),
-          }}>
-            {visual.label}
-          </div>
-        )}
-
-        {scene.subtext && (
-          <div style={{
-            color: 'rgba(255,255,255,0.35)',
-            fontFamily: cfg.fonts.body,
-            fontSize: isVertical ? 30 : 24,
-            textAlign: 'center',
-            opacity: labelOpacity,
-            marginTop: 8,
-          }}>
-            {scene.subtext}
-          </div>
-        )}
+            {counterBlock}
+          </GlassCard>
+        ) : counterBlock}
       </AbsoluteFill>
 
       {cfg.sounds.enabled && (

@@ -1,10 +1,11 @@
 import React from 'react';
 import { AbsoluteFill, Audio, Sequence, interpolate, spring, staticFile, useCurrentFrame, useVideoConfig } from 'remotion';
 import { motionConfig } from '../motion-config';
-import { getTextColor, getSubtextColor, getTextShadow } from '../colorUtils';
+import { getTextColor, getSubtextColor, getTextShadow, isLightColor } from '../colorUtils';
 import type { MotionScriptScene } from '../motion-script-types';
 import { Emoji3D } from './Emoji3D';
 import { TechBackground } from './TechBackground';
+import { LightBackground } from './LightBackground';
 import { useTechTransition } from './useTechTransition';
 
 export const FlowScene: React.FC<{ scene: MotionScriptScene }> = ({ scene }) => {
@@ -22,15 +23,19 @@ export const FlowScene: React.FC<{ scene: MotionScriptScene }> = ({ scene }) => 
   const headlineOpacity = spring({ frame, fps, config: { stiffness: 140, damping: 16 } });
 
   const isVertical = height > width;
-  const iconSize = isVertical ? 52 : 42;
-  const labelSize = isVertical ? 34 : 26;
-  const headlineSize = isVertical ? 40 : 32;
-  const connectorH = isVertical ? 32 : 24;
-  const circleSize = isVertical ? 68 : 54;
+  const isLight = isLightColor(scene.bg ?? '#090909');
+  const iconSize = isVertical ? 80 : 68;
+  const labelSize = isVertical ? 46 : 40;
+  const headlineSize = isVertical ? 50 : 48;
+  const connectorH = isVertical ? 72 : 30;
+  const circleSize = isVertical ? 108 : 88;
 
   return (
     <AbsoluteFill>
-      <TechBackground bg={scene.bg} scanY={scanY} scanOpacity={scanOpacity} />
+      {isLight
+        ? <LightBackground scanY={scanY} scanOpacity={scanOpacity} />
+        : <TechBackground bg={scene.bg} scanY={scanY} scanOpacity={scanOpacity} />
+      }
 
       <AbsoluteFill style={{
         ...techStyle,
@@ -38,7 +43,7 @@ export const FlowScene: React.FC<{ scene: MotionScriptScene }> = ({ scene }) => 
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: isVertical ? '60px 56px' : '50px 100px',
+        padding: isVertical ? '60px 56px' : '50px 80px',
         gap: isVertical ? 20 : 14,
       }}>
         {scene.headline && (
@@ -51,6 +56,7 @@ export const FlowScene: React.FC<{ scene: MotionScriptScene }> = ({ scene }) => 
             opacity: headlineOpacity,
             marginBottom: 8,
             textShadow: getTextShadow(scene.bg),
+            textAlign: 'center',
           }}>
             {scene.headline}
           </div>
@@ -76,8 +82,9 @@ export const FlowScene: React.FC<{ scene: MotionScriptScene }> = ({ scene }) => 
               <div style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: isVertical ? 18 : 14,
+                gap: isVertical ? 18 : 22,
                 width: '100%',
+                maxWidth: isVertical ? undefined : 860,
                 transform: `translateX(${(1 - stepIn) * -40}px)`,
                 opacity: stepIn,
               }}>
@@ -86,12 +93,18 @@ export const FlowScene: React.FC<{ scene: MotionScriptScene }> = ({ scene }) => 
                   width: circleSize, height: circleSize,
                   minWidth: circleSize,
                   borderRadius: '50%',
-                  background: `radial-gradient(circle at 35% 35%, ${stepColor}EE, ${stepColor}88)`,
+                  background: isLight
+                    ? `rgba(255,255,255,0.65)`
+                    : `radial-gradient(circle at 35% 35%, ${stepColor}EE, ${stepColor}88)`,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  boxShadow: `0 0 20px ${stepColor}55, 0 4px 16px rgba(0,0,0,0.4)`,
-                  border: `1px solid ${stepColor}AA`,
+                  boxShadow: isLight
+                    ? `0 4px 16px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.95), 0 0 0 2px ${p.primary}22`
+                    : `0 0 20px ${stepColor}55, 0 4px 16px rgba(0,0,0,0.4)`,
+                  border: isLight ? `1px solid rgba(255,255,255,0.85)` : `1px solid ${stepColor}AA`,
+                  backdropFilter: isLight ? 'blur(12px)' : undefined,
+                  WebkitBackdropFilter: isLight ? 'blur(12px)' : undefined,
                   position: 'relative',
                 }}>
                   <Emoji3D emoji={step.icon} size={Math.round(iconSize * 0.72)} />
@@ -129,6 +142,7 @@ export const FlowScene: React.FC<{ scene: MotionScriptScene }> = ({ scene }) => 
                   flexDirection: 'column',
                   alignItems: 'flex-start',
                   width: '100%',
+                  maxWidth: isVertical ? undefined : 860,
                   paddingLeft: circleSize / 2 - 1,
                 }}>
                   <div style={{

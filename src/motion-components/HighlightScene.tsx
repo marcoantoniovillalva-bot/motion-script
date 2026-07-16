@@ -1,10 +1,11 @@
 import React from 'react';
 import { AbsoluteFill, Audio, Sequence, interpolate, spring, staticFile, useCurrentFrame, useVideoConfig } from 'remotion';
 import { motionConfig } from '../motion-config';
-import { getTextColor, getSubtextColor, getTextShadow } from '../colorUtils';
+import { getTextColor, getSubtextColor, getTextShadow, isLightColor } from '../colorUtils';
 import type { MotionScriptScene } from '../motion-script-types';
 import { Emoji3D } from './Emoji3D';
 import { TechBackground } from './TechBackground';
+import { LightBackground } from './LightBackground';
 import { useTechTransition } from './useTechTransition';
 
 export const HighlightScene: React.FC<{ scene: MotionScriptScene }> = ({ scene }) => {
@@ -29,26 +30,31 @@ export const HighlightScene: React.FC<{ scene: MotionScriptScene }> = ({ scene }
   const subtextSize = isVertical ? 40 : 32;
   const headlineSize = isVertical ? 68 : 56;
 
-  const textColor = visual.kind === 'big-text' ? (visual.color ?? '#FFFFFF') : '#FFFFFF';
-  // Default bg: dark, override if scene.bg is set
   const bgColor = scene.bg ?? p.dark;
+  const isLight = isLightColor(bgColor);
+  const textColor = isLight ? getTextColor(bgColor) : (visual.kind === 'big-text' ? (visual.color ?? '#FFFFFF') : '#FFFFFF');
 
   return (
     <AbsoluteFill>
-      <TechBackground bg={bgColor} scanY={scanY} scanOpacity={scanOpacity} />
+      {isLight
+        ? <LightBackground scanY={scanY} scanOpacity={scanOpacity} />
+        : <TechBackground bg={bgColor} scanY={scanY} scanOpacity={scanOpacity} />
+      }
 
-      {/* Center radial glow */}
-      <AbsoluteFill style={{ pointerEvents: 'none' }}>
-        <div style={{
-          position: 'absolute',
-          top: '50%', left: '50%',
-          transform: 'translate(-50%, -50%)',
-          width: isVertical ? 600 : 500,
-          height: isVertical ? 600 : 500,
-          borderRadius: '50%',
-          background: `radial-gradient(circle, ${p.primary}${Math.round(glowPulse * 30).toString(16).padStart(2, '0')} 0%, transparent 65%)`,
-        }} />
-      </AbsoluteFill>
+      {/* Center radial glow — only on dark backgrounds */}
+      {!isLight && (
+        <AbsoluteFill style={{ pointerEvents: 'none' }}>
+          <div style={{
+            position: 'absolute',
+            top: '50%', left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: isVertical ? 600 : 500,
+            height: isVertical ? 600 : 500,
+            borderRadius: '50%',
+            background: `radial-gradient(circle, ${p.primary}${Math.round(glowPulse * 30).toString(16).padStart(2, '0')} 0%, transparent 65%)`,
+          }} />
+        </AbsoluteFill>
+      )}
 
       <AbsoluteFill style={{
         ...techStyle,
@@ -62,7 +68,7 @@ export const HighlightScene: React.FC<{ scene: MotionScriptScene }> = ({ scene }
         <div style={{
           transform: `scale(${textScale + breathe})`,
           transformOrigin: 'center',
-          filter: visual.kind === 'big-text'
+          filter: (!isLight && visual.kind === 'big-text')
             ? `drop-shadow(0 0 ${30 * glowPulse}px ${p.primary}AA)`
             : undefined,
         }}>

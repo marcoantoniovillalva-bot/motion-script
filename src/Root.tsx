@@ -6,6 +6,16 @@ import { defaultVideoProps } from './default-props';
 import { MotionScriptVideo, defaultMotionProps } from './MotionScriptVideo';
 import { LOGO_INTRO_FRAMES } from './motion-components/LogoIntroScene';
 import type { MotionScriptProps } from './motion-script-types';
+import { TalkingHeadEdit } from './TalkingHeadEdit';
+import type { TalkingHeadEditProps } from './talking-head-types';
+
+const defaultTalkingHeadProps: TalkingHeadEditProps = {
+  footageSrc: 'raw-edits/esempio/composited.mp4',
+  durationSeconds: 120,
+  captions: [],
+  zoomPlan: { duration: 120, beats: [] },
+  faceTrack: { duration: 120, sampleFps: 6, samples: [] },
+};
 
 export const RemotionRoot: React.FC = () => {
   return (
@@ -44,6 +54,17 @@ export const RemotionRoot: React.FC = () => {
             height: props.format === 'vertical' ? 1920 : 1080,
           };
         }}
+      />
+      <Composition
+        id="TalkingHeadEdit"
+        component={TalkingHeadEdit}
+        fps={30}
+        width={1080}
+        height={1920}
+        defaultProps={defaultTalkingHeadProps}
+        calculateMetadata={({ props }: { props: TalkingHeadEditProps }) => ({
+          durationInFrames: Math.max(1, Math.round(props.durationSeconds * 30)),
+        })}
       />
     </>
   );

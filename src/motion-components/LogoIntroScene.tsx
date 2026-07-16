@@ -202,7 +202,7 @@ export const LogoIntroScene: React.FC = () => {
     { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }
   );
 
-  const logoH = isVertical ? 300 : 240;
+  const logoH = isVertical ? 300 : 290;
   const glowSize = isVertical ? 700 : 560;
   const ringMaxSize = isVertical ? 750 : 580;
   const anim = cfg.brand.logoAnimation ?? 'flip-3d';
@@ -248,17 +248,19 @@ export const LogoIntroScene: React.FC = () => {
       {cfg.brand.tagline && (
         <div style={{
           position: 'absolute',
-          bottom: isVertical ? 100 : 70,
+          top: `calc(50% + ${logoH / 2 + 28}px)`,
           left: 0, right: 0,
           display: 'flex', justifyContent: 'center',
           opacity: interpolate(frame, [18, 34], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }),
         }}>
           <div style={{
-            color: 'rgba(255,255,255,0.35)',
-            fontFamily: cfg.fonts.code,
-            fontSize: isVertical ? 24 : 18,
-            letterSpacing: '3px',
+            color: 'rgba(255,255,255,0.92)',
+            fontFamily: cfg.fonts.headline,
+            fontSize: isVertical ? 38 : 36,
+            fontWeight: 700,
+            letterSpacing: '4px',
             textTransform: 'uppercase',
+            textShadow: '0 0 24px rgba(255,255,255,0.4)',
           }}>
             {cfg.brand.tagline}
           </div>

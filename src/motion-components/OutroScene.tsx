@@ -5,6 +5,7 @@ import { isLightColor } from '../colorUtils';
 import type { MotionScriptScene } from '../motion-script-types';
 import { Emoji3D } from './Emoji3D';
 import { TechBackground } from './TechBackground';
+import { LightBackground } from './LightBackground';
 import { useTechTransition } from './useTechTransition';
 
 export const OutroScene: React.FC<{ scene: MotionScriptScene }> = ({ scene }) => {
@@ -24,7 +25,8 @@ export const OutroScene: React.FC<{ scene: MotionScriptScene }> = ({ scene }) =>
 
   // Use primary red as default bg for outro — override via scene.bg
   const bgColor = scene.bg ?? p.primary;
-  const isDarkBg = !isLightColor(bgColor);
+  const isLight = isLightColor(bgColor);
+  const isDarkBg = !isLight;
 
   const isVertical = height > width;
   const ctaSize = isVertical ? 110 : 90;
@@ -34,7 +36,10 @@ export const OutroScene: React.FC<{ scene: MotionScriptScene }> = ({ scene }) =>
 
   return (
     <AbsoluteFill>
-      <TechBackground bg={bgColor} accentColor={isDarkBg ? p.primary : '#ffffff'} scanY={scanY} scanOpacity={scanOpacity} />
+      {isLight
+        ? <LightBackground scanY={scanY} scanOpacity={scanOpacity} />
+        : <TechBackground bg={bgColor} accentColor={p.primary} scanY={scanY} scanOpacity={scanOpacity} />
+      }
 
       {/* Brand logo top */}
       <div style={{
@@ -49,11 +54,13 @@ export const OutroScene: React.FC<{ scene: MotionScriptScene }> = ({ scene }) =>
       }}>
         {cfg.brand.logoSrc ? (
           <div style={{
-            background: 'rgba(0,0,0,0.35)',
+            background: isLight ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.35)',
             borderRadius: 16,
             padding: isVertical ? '14px 28px' : '10px 22px',
             backdropFilter: 'blur(8px)',
-            border: '1px solid rgba(255,255,255,0.10)',
+            WebkitBackdropFilter: 'blur(8px)',
+            border: isLight ? '1px solid rgba(255,255,255,0.85)' : '1px solid rgba(255,255,255,0.10)',
+            boxShadow: isLight ? '0 4px 16px rgba(0,0,0,0.06)' : 'none',
           }}>
             <Img
               src={staticFile(cfg.brand.logoSrc)}
@@ -114,20 +121,20 @@ export const OutroScene: React.FC<{ scene: MotionScriptScene }> = ({ scene }) =>
           </div>
         )}
 
-        {/* Glowing divider */}
+        {/* Divider */}
         <div style={{
           height: 2,
           width: `${lineScale * 48}%`,
-          background: isDarkBg
-            ? `linear-gradient(to right, transparent, ${p.primary}, transparent)`
-            : `linear-gradient(to right, transparent, rgba(255,255,255,0.6), transparent)`,
-          boxShadow: isDarkBg ? `0 0 12px 2px ${p.primary}66` : 'none',
+          background: isLight
+            ? `linear-gradient(to right, transparent, ${p.primary}88, transparent)`
+            : `linear-gradient(to right, transparent, ${p.primary}, transparent)`,
+          boxShadow: isLight ? 'none' : `0 0 12px 2px ${p.primary}66`,
           borderRadius: 2,
         }} />
 
         {scene.headline && (
           <div style={{
-            color: isDarkBg ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.9)',
+            color: isLight ? '#1C1C1E' : 'rgba(255,255,255,0.92)',
             fontFamily: cfg.fonts.headline,
             fontSize: isVertical ? 56 : 44,
             fontWeight: 900,
@@ -135,6 +142,7 @@ export const OutroScene: React.FC<{ scene: MotionScriptScene }> = ({ scene }) =>
             textTransform: 'uppercase',
             letterSpacing: '3px',
             opacity: subtextOpacity,
+            textShadow: isLight ? '0 1px 4px rgba(0,0,0,0.10)' : 'none',
           }}>
             {scene.headline}
           </div>
@@ -142,7 +150,7 @@ export const OutroScene: React.FC<{ scene: MotionScriptScene }> = ({ scene }) =>
 
         {scene.subtext && (
           <div style={{
-            color: isDarkBg ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.7)',
+            color: isLight ? 'rgba(28,28,30,0.6)' : 'rgba(255,255,255,0.45)',
             fontFamily: cfg.fonts.code,
             fontSize: subtextSize,
             textAlign: 'center',
@@ -164,7 +172,7 @@ export const OutroScene: React.FC<{ scene: MotionScriptScene }> = ({ scene }) =>
         opacity: subtextOpacity,
       }}>
         <div style={{
-          color: isDarkBg ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.45)',
+          color: isLight ? 'rgba(28,28,30,0.35)' : 'rgba(255,255,255,0.28)',
           fontFamily: cfg.fonts.code,
           fontSize: isVertical ? 22 : 17,
           letterSpacing: '3px',

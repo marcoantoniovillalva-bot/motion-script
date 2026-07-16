@@ -1,0 +1,670 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=1920, height=1080"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;}
+    html,body{width:1920px;height:1080px;overflow:hidden;background:#000;
+              font-family:'Inter',system-ui,sans-serif;}
+    .clip{position:absolute;width:1920px;height:1080px;overflow:hidden;}
+
+    /* SAFE ZONE: x=640-1280, center x=960 */
+    .zone{position:absolute;left:640px;width:640px;height:1080px;
+          display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:10;}
+    .zone-left{align-items:flex-start;}
+    .zone-top{justify-content:flex-start;padding-top:140px;}
+    .zone-wide{left:540px;width:840px;}
+
+    /* TEXT REVEAL */
+    .mask{overflow:hidden;display:block;line-height:1.06;}
+
+    /* TYPOGRAPHY */
+    .cat{font-size:12px;font-weight:600;letter-spacing:5px;text-transform:uppercase;
+         color:rgba(255,255,255,0.38);}
+    .cat-red{color:rgba(252,55,24,0.85);}
+    .h1{font-size:96px;font-weight:900;color:#EFEDE6;letter-spacing:-3px;
+        display:block;text-align:center;}
+    .h1-xl{font-size:156px;letter-spacing:-8px;}
+    .h1-lg{font-size:112px;letter-spacing:-5px;}
+    .h1-md{font-size:76px;letter-spacing:-2px;}
+    .h1-sm{font-size:56px;letter-spacing:-1.5px;}
+    .h1-left{text-align:left;}
+    .accent{color:#FC3718;}
+    .sub{font-size:26px;font-weight:300;color:rgba(239,237,230,0.50);
+         line-height:1.6;text-align:center;}
+    .sub-left{text-align:left;}
+
+    /* DECORATIVE */
+    .rule-h{height:1px;background:linear-gradient(to right,
+            transparent,rgba(255,255,255,0.22),transparent);}
+    .rule-v{width:1px;background:linear-gradient(to bottom,
+            transparent,rgba(255,255,255,0.18),transparent);}
+    .orb{position:absolute;border-radius:50%;pointer-events:none;}
+    .scan{height:1px;width:1920px;position:absolute;
+          background:linear-gradient(to right,transparent,rgba(255,255,255,0.06),transparent);
+          pointer-events:none;}
+
+    /* BROWSER MOCKUP */
+    .browser{border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.1);}
+    .browser-bar{height:36px;background:#1C1C1C;display:flex;
+                 align-items:center;padding:0 12px;gap:7px;}
+    .browser-dot{width:10px;height:10px;border-radius:50%;}
+    .browser-url{flex:1;background:rgba(255,255,255,0.07);border-radius:5px;
+                 height:20px;margin:0 10px;display:flex;align-items:center;
+                 padding:0 10px;font-size:11px;color:rgba(255,255,255,0.32);
+                 font-family:'Courier New',monospace;}
+
+    /* STAT */
+    .stat-num{font-size:156px;font-weight:900;letter-spacing:-6px;
+              color:#FC3718;line-height:1;text-align:center;}
+    .stat-unit{font-size:30px;font-weight:300;color:rgba(239,237,230,0.48);
+               text-align:center;margin-top:-6px;}
+
+    /* SPLIT */
+    .split-label{font-size:11px;font-weight:700;letter-spacing:4px;
+                 text-transform:uppercase;margin-bottom:26px;}
+    .split-item{display:flex;align-items:center;gap:14px;margin-bottom:18px;
+                font-size:25px;font-weight:400;color:#EFEDE6;line-height:1.3;}
+    .split-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;}
+
+    /* META */
+    .meta{position:absolute;font-size:10px;font-family:'Courier New',monospace;
+          color:rgba(255,255,255,0.16);letter-spacing:2px;}
+  </style>
+</head>
+<body>
+
+<div id="root"
+  data-composition-id="main"
+  data-start="0"
+  data-duration="71"
+  data-width="1920"
+  data-height="1080">
+
+<!-- ================================================
+     LOGO INTRO  0s-4s  track 1
+     ================================================ -->
+<div id="logo-intro" class="clip"
+     data-start="0" data-duration="4" data-track-index="1"
+     style="background:#03040A" data-layout-allow-overflow>
+  <div style="position:absolute;top:0;left:0;width:1920px;height:1080px;
+              display:flex;flex-direction:column;align-items:center;justify-content:center">
+    <div id="li-glow" style="position:absolute;width:720px;height:720px;border-radius:50%;
+      background:radial-gradient(circle,rgba(252,55,24,0.13) 0%,transparent 65%);
+      left:600px;top:180px;pointer-events:none"></div>
+    <img id="li-logo" src="public/brand/logo.png"
+         style="height:108px;object-fit:contain;position:relative;z-index:2">
+    <div id="li-tag" style="margin-top:16px;font-size:12px;letter-spacing:6px;
+         text-transform:uppercase;color:rgba(255,255,255,0.28);white-space:nowrap;
+         position:relative;z-index:2">MARKETIZZATI</div>
+  </div>
+</div>
+
+<!-- ================================================
+     S1 TITLE  4s-9s (dur 5.5)  track 2
+     ================================================ -->
+<div id="s1" class="clip"
+     data-start="4" data-duration="5.5" data-track-index="2"
+     style="background:#06070F" data-layout-allow-overflow>
+  <div id="s1-w" style="position:absolute;top:0;left:0;width:1920px;height:1080px">
+    <div id="s1-orb" class="orb" style="width:860px;height:860px;
+      background:radial-gradient(circle,rgba(252,55,24,0.07) 0%,transparent 60%);
+      top:110px;left:-160px"></div>
+    <div id="s1-scan" class="scan" style="top:480px"></div>
+    <div class="zone" style="gap:0">
+      <div id="s1-cat" class="cat cat-red" style="margin-bottom:20px">INTELLIGENZA ARTIFICIALE</div>
+      <div class="mask"><span id="s1-w1" class="h1 h1-xl">Ecco la</span></div>
+      <div class="mask"><span id="s1-w2" class="h1 h1-xl accent">Realta.</span></div>
+      <div id="s1-sub" class="sub" style="margin-top:24px;max-width:500px;font-size:23px">
+        Sistemi che replicano intelligenza umana
+      </div>
+    </div>
+    <div id="s1-deco" style="position:absolute;right:80px;top:50%;font-size:300px;
+         font-weight:900;color:rgba(255,255,255,0.016);line-height:1;
+         font-family:Inter,sans-serif;letter-spacing:-14px;
+         transform:translateY(-50%)">IA</div>
+  </div>
+</div>
+
+<!-- ================================================
+     S2 DIAGRAM DEF  9s-16s (dur 7.5)  track 3
+     ================================================ -->
+<div id="s2" class="clip"
+     data-start="9" data-duration="7.5" data-track-index="3"
+     style="background:#060D18" data-layout-allow-overflow>
+  <div id="s2-w" style="position:absolute;top:0;left:0;width:1920px;height:1080px">
+    <div id="s2-orb" class="orb" style="width:680px;height:680px;
+      background:radial-gradient(circle,rgba(60,120,220,0.07) 0%,transparent 60%);
+      top:200px;right:80px"></div>
+    <div id="s2-scan" class="scan" style="top:360px"></div>
+    <div class="zone zone-wide" style="gap:0">
+      <div id="s2-cat" class="cat" style="margin-bottom:18px;align-self:flex-start">DEFINIZIONE</div>
+      <div class="mask" style="align-self:flex-start">
+        <span id="s2-hl" class="h1 h1-md h1-left">L'IA replica <span class="accent">4 capacita</span> umane</span>
+      </div>
+      <svg viewBox="0 0 840 380" style="width:840px;height:380px;margin-top:26px;overflow:visible">
+        <line id="s2-l1" x1="420" y1="190" x2="140" y2="90"
+              stroke="rgba(252,55,24,0.42)" stroke-width="1.5"
+              stroke-dasharray="310" stroke-dashoffset="310"/>
+        <line id="s2-l2" x1="420" y1="190" x2="700" y2="90"
+              stroke="rgba(252,55,24,0.42)" stroke-width="1.5"
+              stroke-dasharray="310" stroke-dashoffset="310"/>
+        <line id="s2-l3" x1="420" y1="190" x2="140" y2="300"
+              stroke="rgba(252,55,24,0.42)" stroke-width="1.5"
+              stroke-dasharray="310" stroke-dashoffset="310"/>
+        <line id="s2-l4" x1="420" y1="190" x2="700" y2="300"
+              stroke="rgba(252,55,24,0.42)" stroke-width="1.5"
+              stroke-dasharray="310" stroke-dashoffset="310"/>
+        <circle id="s2-nc" cx="420" cy="190" r="54"
+                fill="rgba(252,55,24,0.14)" stroke="rgba(252,55,24,0.68)" stroke-width="1.5"/>
+        <text x="420" y="184" text-anchor="middle" fill="#FC3718"
+              font-family="Inter" font-size="14" font-weight="700" letter-spacing="1">INTEL</text>
+        <text x="420" y="202" text-anchor="middle" fill="#FC3718"
+              font-family="Inter" font-size="14" font-weight="700" letter-spacing="1">LIGENZA</text>
+        <circle id="s2-n1" cx="140" cy="90" r="42"
+                fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.22)" stroke-width="1"/>
+        <text x="140" y="84" text-anchor="middle" fill="#EFEDE6"
+              font-family="Inter" font-size="13" font-weight="600">LINGUA</text>
+        <text x="140" y="101" text-anchor="middle" fill="#EFEDE6"
+              font-family="Inter" font-size="13" font-weight="600">GGIO</text>
+        <circle id="s2-n2" cx="700" cy="90" r="42"
+                fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.22)" stroke-width="1"/>
+        <text x="700" y="84" text-anchor="middle" fill="#EFEDE6"
+              font-family="Inter" font-size="12" font-weight="600">RICONO</text>
+        <text x="700" y="101" text-anchor="middle" fill="#EFEDE6"
+              font-family="Inter" font-size="12" font-weight="600">SCIMENTO</text>
+        <circle id="s2-n3" cx="140" cy="300" r="42"
+                fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.22)" stroke-width="1"/>
+        <text x="140" y="294" text-anchor="middle" fill="#EFEDE6"
+              font-family="Inter" font-size="13" font-weight="600">DECI</text>
+        <text x="140" y="311" text-anchor="middle" fill="#EFEDE6"
+              font-family="Inter" font-size="13" font-weight="600">SIONI</text>
+        <circle id="s2-n4" cx="700" cy="300" r="42"
+                fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.22)" stroke-width="1"/>
+        <text x="700" y="294" text-anchor="middle" fill="#EFEDE6"
+              font-family="Inter" font-size="13" font-weight="600">CREATI</text>
+        <text x="700" y="311" text-anchor="middle" fill="#EFEDE6"
+              font-family="Inter" font-size="13" font-weight="600">VITA</text>
+      </svg>
+    </div>
+    <div class="meta" style="bottom:28px;left:648px">SCENE 01 — DEFINIZIONE IA</div>
+  </div>
+</div>
+
+<!-- ================================================
+     S3 IMAGE TURING  16s-22s (dur 6.5)  track 2
+     ================================================ -->
+<div id="s3" class="clip"
+     data-start="16" data-duration="6.5" data-track-index="2"
+     style="background:#040610" data-layout-allow-overflow>
+  <div id="s3-w" style="position:absolute;top:0;left:0;width:1920px;height:1080px">
+    <img id="s3-img" src="public/assets/funzionamento-ia/photo-1.jpg"
+         style="position:absolute;top:0;left:0;width:1920px;height:1080px;
+                object-fit:cover;filter:brightness(0.30) saturate(0.55)">
+    <div style="position:absolute;top:0;left:0;width:1920px;height:1080px;
+         background:linear-gradient(to right,rgba(4,6,16,0) 0%,rgba(4,6,16,0.35) 30%,
+         rgba(4,6,16,0.88) 55%,rgba(4,6,16,0.97) 100%);z-index:1"></div>
+    <div id="s3-scan" class="scan" style="top:580px;z-index:2"></div>
+    <div class="zone zone-left" style="z-index:5;padding-left:40px">
+      <div id="s3-cat" class="cat" style="margin-bottom:22px">STORIA · 1940</div>
+      <div class="mask"><span id="s3-w1" class="h1 h1-lg h1-left">Alan</span></div>
+      <div class="mask"><span id="s3-w2" class="h1 h1-lg h1-left accent">Turing</span></div>
+      <div id="s3-vl" class="rule-v" style="height:88px;margin-top:26px"></div>
+      <div id="s3-sub" class="sub sub-left" style="margin-top:20px;max-width:390px;font-size:21px">
+        Se una macchina ti convince che e umana, ha superato il test.
+      </div>
+    </div>
+    <div id="s3-year" style="position:absolute;right:100px;bottom:60px;z-index:5;
+         font-size:230px;font-weight:900;color:rgba(255,255,255,0.04);
+         font-family:Inter;letter-spacing:-12px;line-height:1">1950</div>
+  </div>
+</div>
+
+<!-- ================================================
+     S4 DIAGRAM TIPI  22s-30s (dur 8.5)  track 3
+     ================================================ -->
+<div id="s4" class="clip"
+     data-start="22" data-duration="8.5" data-track-index="3"
+     style="background:#07090F" data-layout-allow-overflow>
+  <div id="s4-w" style="position:absolute;top:0;left:0;width:1920px;height:1080px">
+    <div id="s4-orb" class="orb" style="width:600px;height:600px;
+      background:radial-gradient(circle,rgba(252,55,24,0.065) 0%,transparent 60%);
+      left:660px;top:240px"></div>
+    <div id="s4-scan" class="scan" style="top:730px"></div>
+    <div class="zone zone-wide" style="gap:0">
+      <div id="s4-cat" class="cat" style="margin-bottom:18px;align-self:flex-start">I 5 TIPI DI INTELLIGENZA ARTIFICIALE</div>
+      <div class="mask" style="align-self:flex-start">
+        <span id="s4-hl" class="h1 h1-sm h1-left">Dallo strumento alla <span class="accent">superintelligenza</span></span>
+      </div>
+      <svg viewBox="0 0 840 260" style="width:840px;height:260px;margin-top:34px;overflow:visible">
+        <line id="s4-base" x1="60" y1="110" x2="780" y2="110"
+              stroke="rgba(255,255,255,0.11)" stroke-width="1"
+              stroke-dasharray="720" stroke-dashoffset="720"/>
+        <circle id="s4-n1" cx="60"  cy="110" r="18" fill="rgba(255,255,255,0.07)" stroke="rgba(255,255,255,0.28)" stroke-width="1"/>
+        <circle id="s4-n2" cx="240" cy="110" r="20" fill="rgba(255,255,255,0.07)" stroke="rgba(255,255,255,0.28)" stroke-width="1"/>
+        <circle id="s4-n3" cx="420" cy="110" r="28" fill="rgba(252,55,24,0.15)" stroke="rgba(252,55,24,0.7)" stroke-width="1.5"/>
+        <circle id="s4-n4" cx="600" cy="110" r="20" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.18)" stroke-width="1"/>
+        <circle id="s4-n5" cx="780" cy="110" r="18" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+        <text x="60"  y="66"  text-anchor="middle" fill="rgba(239,237,230,0.72)" font-family="Inter" font-size="13" font-weight="600">TRADIZIONALE</text>
+        <text x="240" y="66"  text-anchor="middle" fill="rgba(239,237,230,0.72)" font-family="Inter" font-size="13" font-weight="600">PREDITTIVA</text>
+        <text x="420" y="56"  text-anchor="middle" fill="#FC3718"                 font-family="Inter" font-size="15" font-weight="700">GENERATIVA</text>
+        <text x="600" y="66"  text-anchor="middle" fill="rgba(239,237,230,0.48)" font-family="Inter" font-size="13" font-weight="600">AGI</text>
+        <text x="780" y="66"  text-anchor="middle" fill="rgba(239,237,230,0.28)" font-family="Inter" font-size="13" font-weight="600">ASI</text>
+        <text x="60"  y="154" text-anchor="middle" fill="rgba(239,237,230,0.35)" font-family="Inter" font-size="11">Una sola cosa</text>
+        <text x="240" y="154" text-anchor="middle" fill="rgba(239,237,230,0.35)" font-family="Inter" font-size="11">Prevede il futuro</text>
+        <text x="420" y="160" text-anchor="middle" fill="rgba(252,55,24,0.55)"   font-family="Inter" font-size="11">Crea contenuti</text>
+        <text x="600" y="154" text-anchor="middle" fill="rgba(239,237,230,0.22)" font-family="Inter" font-size="11">Come un umano</text>
+        <text x="780" y="154" text-anchor="middle" fill="rgba(239,237,230,0.14)" font-family="Inter" font-size="11">Supera l'umano</text>
+        <text x="420" y="220" text-anchor="middle" fill="rgba(252,55,24,0.42)"   font-family="Inter" font-size="11" letter-spacing="3">— OGGI —</text>
+      </svg>
+    </div>
+    <div class="meta" style="bottom:28px;left:648px">SCENE 02 — I TIPI DI IA</div>
+  </div>
+</div>
+
+<!-- ================================================
+     S5 BROWSER  30s-36s (dur 6.5)  track 2
+     ================================================ -->
+<div id="s5" class="clip"
+     data-start="30" data-duration="6.5" data-track-index="2"
+     style="background:#07090F" data-layout-allow-overflow>
+  <div id="s5-w" style="position:absolute;top:0;left:0;width:1920px;height:1080px">
+    <div id="s5-orb" class="orb" style="width:780px;height:780px;
+      background:radial-gradient(circle,rgba(80,180,120,0.05) 0%,transparent 55%);
+      top:150px;right:-120px"></div>
+    <div id="s5-scan" class="scan" style="top:400px"></div>
+    <div class="zone" style="gap:14px">
+      <div id="s5-cat" class="cat">STRUMENTO REALE</div>
+      <div class="mask"><span id="s5-hl" class="h1 h1-md">Chat<span class="accent">GPT</span></span></div>
+      <div id="s5-browser" class="browser" style="width:570px">
+        <div class="browser-bar">
+          <div class="browser-dot" style="background:#FF5F57"></div>
+          <div class="browser-dot" style="background:#FEBC2E"></div>
+          <div class="browser-dot" style="background:#28C840"></div>
+          <div class="browser-url">chat.openai.com</div>
+        </div>
+        <img src="public/assets/funzionamento-ia/screenshot-0.jpg"
+             style="width:100%;height:270px;object-fit:cover;display:block">
+      </div>
+      <div id="s5-sub" class="sub" style="font-size:21px">L'esempio piu noto di IA generativa al mondo</div>
+    </div>
+    <div class="meta" style="bottom:28px;left:648px">SCENE 03 — IA GENERATIVA</div>
+  </div>
+</div>
+
+<!-- ================================================
+     S6 DIAGRAM ML  36s-43s (dur 7.5)  track 3
+     ================================================ -->
+<div id="s6" class="clip"
+     data-start="36" data-duration="7.5" data-track-index="3"
+     style="background:#060D18" data-layout-allow-overflow>
+  <div id="s6-w" style="position:absolute;top:0;left:0;width:1920px;height:1080px">
+    <div id="s6-orb" class="orb" style="width:650px;height:650px;
+      background:radial-gradient(circle,rgba(60,120,220,0.07) 0%,transparent 60%);
+      top:215px;left:80px"></div>
+    <div id="s6-scan" class="scan" style="top:520px"></div>
+    <div class="zone zone-wide" style="gap:0">
+      <div id="s6-cat" class="cat" style="margin-bottom:18px;align-self:flex-start">MACHINE LEARNING</div>
+      <div class="mask" style="align-self:flex-start">
+        <span id="s6-hl" class="h1 h1-sm h1-left">Come <span class="accent">impara</span> una macchina</span>
+      </div>
+      <svg viewBox="0 0 840 180" style="width:840px;height:180px;margin-top:34px;overflow:visible">
+        <line id="s6-a1" x1="132" y1="70" x2="215" y2="70"
+              stroke="rgba(252,55,24,0.5)" stroke-width="1.5"
+              stroke-dasharray="83" stroke-dashoffset="83"/>
+        <line id="s6-a2" x1="347" y1="70" x2="430" y2="70"
+              stroke="rgba(252,55,24,0.5)" stroke-width="1.5"
+              stroke-dasharray="83" stroke-dashoffset="83"/>
+        <line id="s6-a3" x1="562" y1="70" x2="645" y2="70"
+              stroke="rgba(252,55,24,0.5)" stroke-width="1.5"
+              stroke-dasharray="83" stroke-dashoffset="83"/>
+        <polygon id="s6-p1" points="213,64 222,70 213,76" fill="rgba(252,55,24,0.5)"/>
+        <polygon id="s6-p2" points="428,64 437,70 428,76" fill="rgba(252,55,24,0.5)"/>
+        <polygon id="s6-p3" points="643,64 652,70 643,76" fill="rgba(252,55,24,0.5)"/>
+        <rect id="s6-b1" x="10"  y="30" width="122" height="80" rx="10"
+              fill="rgba(252,55,24,0.12)" stroke="rgba(252,55,24,0.5)" stroke-width="1"/>
+        <text x="71"  y="66"  text-anchor="middle" fill="#FC3718"                   font-family="Inter" font-size="15" font-weight="700">DATI</text>
+        <text x="71"  y="86"  text-anchor="middle" fill="rgba(239,237,230,0.38)"    font-family="Inter" font-size="10">Raccolta</text>
+        <rect id="s6-b2" x="225" y="30" width="122" height="80" rx="10"
+              fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.18)" stroke-width="1"/>
+        <text x="286" y="66"  text-anchor="middle" fill="#EFEDE6"                   font-family="Inter" font-size="15" font-weight="600">SCHEMI</text>
+        <text x="286" y="86"  text-anchor="middle" fill="rgba(239,237,230,0.38)"    font-family="Inter" font-size="10">Analisi</text>
+        <rect id="s6-b3" x="440" y="30" width="122" height="80" rx="10"
+              fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.18)" stroke-width="1"/>
+        <text x="501" y="66"  text-anchor="middle" fill="#EFEDE6"                   font-family="Inter" font-size="15" font-weight="600">MODELLO</text>
+        <text x="501" y="86"  text-anchor="middle" fill="rgba(239,237,230,0.38)"    font-family="Inter" font-size="10">Addestramento</text>
+        <rect id="s6-b4" x="655" y="30" width="122" height="80" rx="10"
+              fill="rgba(252,55,24,0.12)" stroke="rgba(252,55,24,0.5)" stroke-width="1.5"/>
+        <text x="716" y="66"  text-anchor="middle" fill="#FC3718"                   font-family="Inter" font-size="15" font-weight="700">OUTPUT</text>
+        <text x="716" y="86"  text-anchor="middle" fill="rgba(239,237,230,0.38)"    font-family="Inter" font-size="10">Previsioni</text>
+        <text x="420" y="155" text-anchor="middle" fill="rgba(239,237,230,0.25)"
+              font-family="Inter" font-size="11" letter-spacing="1">Prima raccogli — poi impara — poi decide</text>
+      </svg>
+    </div>
+    <div class="meta" style="bottom:28px;left:648px">SCENE 04 — MACHINE LEARNING</div>
+  </div>
+</div>
+
+<!-- ================================================
+     S7 STAT  43s-49s (dur 6.5)  track 2
+     ================================================ -->
+<div id="s7" class="clip"
+     data-start="43" data-duration="6.5" data-track-index="2"
+     style="background:#09050A" data-layout-allow-overflow>
+  <div id="s7-w" style="position:absolute;top:0;left:0;width:1920px;height:1080px">
+    <div id="s7-orb" class="orb" style="width:880px;height:880px;
+      background:radial-gradient(circle,rgba(252,55,24,0.13) 0%,transparent 55%);
+      top:100px;right:-140px"></div>
+    <div id="s7-scan" class="scan" style="top:620px"></div>
+    <div class="zone" style="gap:0">
+      <div id="s7-cat" class="cat cat-red" style="margin-bottom:22px">CRESCITA RECORD</div>
+      <div id="s7-num" class="stat-num">0</div>
+      <div id="s7-unit" class="stat-unit">milioni di utenti in 2 mesi</div>
+      <div class="mask" style="margin-top:20px">
+        <span id="s7-label" class="sub" style="font-size:21px">ChatGPT — il prodotto consumer piu veloce della storia</span>
+      </div>
+      <div id="s7-rule" class="rule-h" style="width:180px;margin-top:24px"></div>
+      <div id="s7-src" style="margin-top:14px;font-size:10px;font-family:'Courier New',monospace;
+           color:rgba(255,255,255,0.18);letter-spacing:2px">OpenAI · Gennaio 2023</div>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================
+     S8 SPLIT  49s-56s (dur 7.5)  track 3
+     ================================================ -->
+<div id="s8" class="clip"
+     data-start="49" data-duration="7.5" data-track-index="3"
+     style="background:#060810" data-layout-allow-overflow>
+  <div id="s8-w" style="position:absolute;top:0;left:0;width:1920px;height:1080px">
+    <div id="s8-scan" class="scan" style="top:300px"></div>
+    <div class="zone zone-top" style="z-index:5">
+      <div id="s8-cat" class="cat" style="margin-top:90px">ANALISI</div>
+      <div class="mask" style="margin-top:14px">
+        <span id="s8-hl" class="h1 h1-md">Vantaggi <span class="accent">e</span> Rischi</span>
+      </div>
+    </div>
+    <div id="s8-vdiv" style="position:absolute;left:958px;top:260px;width:1px;height:580px;
+         background:linear-gradient(to bottom,transparent,rgba(255,255,255,0.14),transparent);z-index:5"></div>
+    <div id="s8-left" style="position:absolute;left:545px;top:265px;width:375px;z-index:5">
+      <div id="s8-lcat" class="split-label" style="color:rgba(255,255,255,0.32)">OPPORTUNITA</div>
+      <div class="split-item" id="s8-l1"><div class="split-dot" style="background:rgba(255,255,255,0.4)"></div>Automazione del lavoro</div>
+      <div class="split-item" id="s8-l2"><div class="split-dot" style="background:rgba(255,255,255,0.4)"></div>Decisioni piu accurate</div>
+      <div class="split-item" id="s8-l3"><div class="split-dot" style="background:rgba(255,255,255,0.4)"></div>Personalizzazione</div>
+      <div class="split-item" id="s8-l4"><div class="split-dot" style="background:rgba(255,255,255,0.4)"></div>Innovazione continua</div>
+    </div>
+    <div id="s8-right" style="position:absolute;left:982px;top:265px;width:360px;z-index:5">
+      <div id="s8-rcat" class="split-label" style="color:rgba(252,55,24,0.62)">ATTENZIONE</div>
+      <div class="split-item" id="s8-r1"><div class="split-dot" style="background:rgba(252,55,24,0.6)"></div>Privacy dei dati</div>
+      <div class="split-item" id="s8-r2"><div class="split-dot" style="background:rgba(252,55,24,0.6)"></div>Bias nei risultati</div>
+      <div class="split-item" id="s8-r3"><div class="split-dot" style="background:rgba(252,55,24,0.6)"></div>Perdita di lavoro</div>
+      <div class="split-item" id="s8-r4"><div class="split-dot" style="background:rgba(252,55,24,0.6)"></div>Questioni etiche</div>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================
+     S9 IMAGE FUTURO  56s-62s (dur 6.5)  track 2
+     ================================================ -->
+<div id="s9" class="clip"
+     data-start="56" data-duration="6.5" data-track-index="2"
+     style="background:#040508" data-layout-allow-overflow>
+  <div id="s9-w" style="position:absolute;top:0;left:0;width:1920px;height:1080px">
+    <img id="s9-img" src="public/assets/funzionamento-ia/photo-4.jpg"
+         style="position:absolute;top:0;left:0;width:1920px;height:1080px;
+                object-fit:cover;filter:brightness(0.28) saturate(0.50)">
+    <div style="position:absolute;top:0;left:0;width:1920px;height:1080px;
+         background:linear-gradient(to right,rgba(4,5,8,0) 0%,rgba(4,5,8,0.38) 30%,
+         rgba(4,5,8,0.86) 54%,rgba(4,5,8,0.97) 100%);z-index:1"></div>
+    <div id="s9-scan" class="scan" style="top:440px;z-index:2"></div>
+    <div class="zone zone-left" style="z-index:5;padding-left:40px">
+      <div id="s9-cat" class="cat" style="margin-bottom:22px">CRESCITA ESPONENZIALE</div>
+      <div class="mask"><span id="s9-w1" class="h1 h1-lg h1-left">Presto</span></div>
+      <div class="mask"><span id="s9-w2" class="h1 h1-md h1-left">automatizzera</span></div>
+      <div class="mask"><span id="s9-w3" class="h1 h1-md h1-left accent">mesi di lavoro.</span></div>
+      <div id="s9-sub" class="sub sub-left" style="margin-top:26px;max-width:380px;font-size:21px">
+        L'IA cresce piu veloce di qualsiasi tecnologia nella storia
+      </div>
+    </div>
+    <div id="s9-deco" style="position:absolute;right:80px;top:50%;z-index:5;
+         font-size:250px;font-weight:900;color:rgba(252,55,24,0.04);
+         transform:translateY(-50%);font-family:Inter;letter-spacing:-14px">EXP</div>
+  </div>
+</div>
+
+<!-- ================================================
+     S10 QUOTE CTA  62s-68s (dur 6.5)  track 3
+     ================================================ -->
+<div id="s10" class="clip"
+     data-start="62" data-duration="6.5" data-track-index="3"
+     style="background:#050608" data-layout-allow-overflow>
+  <div id="s10-w" style="position:absolute;top:0;left:0;width:1920px;height:1080px">
+    <div id="s10-orb" class="orb" style="width:800px;height:800px;
+      background:radial-gradient(circle,rgba(252,55,24,0.055) 0%,transparent 60%);
+      left:560px;top:140px"></div>
+    <div id="s10-scan" class="scan" style="top:700px"></div>
+    <div class="zone" style="gap:0">
+      <div id="s10-cat" class="cat" style="margin-bottom:28px">CONCLUSIONE</div>
+      <div id="s10-rule1" class="rule-h" style="width:120px;margin-bottom:28px"></div>
+      <div class="mask"><span id="s10-q1" class="h1 h1-sm" style="color:rgba(239,237,230,0.42)">Il punto non e capire</span></div>
+      <div class="mask"><span id="s10-q2" class="h1 h1-sm" style="color:rgba(239,237,230,0.42)">il dettaglio tecnico.</span></div>
+      <div style="height:18px"></div>
+      <div class="mask"><span id="s10-q3" class="h1 h1-sm">Il punto e <span class="accent">usarla</span></span></div>
+      <div class="mask"><span id="s10-q4" class="h1 h1-sm">a tuo <span class="accent">vantaggio.</span></span></div>
+      <div id="s10-rule2" class="rule-h" style="width:120px;margin-top:28px"></div>
+      <div id="s10-next" style="margin-top:26px;font-size:13px;font-weight:600;
+           letter-spacing:4px;text-transform:uppercase;color:rgba(252,55,24,0.58)">
+        Prossimo — Modelli LLM
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================
+     LOGO OUTRO  68s-71s  track 1
+     ================================================ -->
+<div id="logo-outro" class="clip"
+     data-start="68" data-duration="3" data-track-index="1"
+     style="background:#03040A" data-layout-allow-overflow>
+  <div style="position:absolute;top:0;left:0;width:1920px;height:1080px;
+              display:flex;flex-direction:column;align-items:center;justify-content:center">
+    <div id="lo-glow" style="position:absolute;width:600px;height:600px;border-radius:50%;
+      background:radial-gradient(circle,rgba(252,55,24,0.10) 0%,transparent 65%);
+      left:660px;top:240px;pointer-events:none"></div>
+    <img id="lo-logo" src="public/brand/logo.png"
+         style="height:96px;object-fit:contain;position:relative;z-index:2">
+    <div id="lo-sub" style="margin-top:18px;font-size:20px;font-weight:300;
+         color:rgba(255,255,255,0.38);letter-spacing:1px;white-space:nowrap;
+         position:relative;z-index:2">Marketing + IA = Risultati</div>
+    <div id="lo-tag" style="position:absolute;bottom:62px;font-size:11px;letter-spacing:6px;
+         text-transform:uppercase;color:rgba(255,255,255,0.2)">MARKETIZZATI.IT</div>
+  </div>
+</div>
+
+<!-- GRAIN FILTER + OVERLAY inside root -->
+<svg style="position:absolute;width:0;height:0;pointer-events:none">
+  <defs>
+    <filter id="grain-filter" x="0%" y="0%" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/>
+      <feColorMatrix type="saturate" values="0"/>
+      <feBlend in="SourceGraphic" mode="multiply"/>
+    </filter>
+  </defs>
+</svg>
+<div style="position:absolute;top:0;left:0;width:1920px;height:1080px;
+     filter:url(#grain-filter);opacity:0.035;pointer-events:none;z-index:999;
+     background:rgba(255,255,255,0.05)"></div>
+
+</div><!-- /root -->
+
+<script>
+window.__timelines = window.__timelines || {};
+var tl = gsap.timeline({ paused: true });
+
+function rev(id,t,d){ tl.from(id,{y:'108%',duration:d||0.9,ease:'power4.out'},t); }
+function fin(id,t,d){ tl.from(id,{autoAlpha:0,duration:d||0.6,ease:'power2.out'},t); }
+function fout(id,t,d){ tl.to(id,{autoAlpha:0,duration:d||0.4,ease:'power1.in'},t); }
+
+/* ===== LOGO INTRO T=0-4 ===== */
+tl.from('#li-glow',{autoAlpha:0,scale:0.5,duration:2.8,ease:'power2.out'},0.05);
+tl.from('#li-logo',{autoAlpha:0,scale:0.88,duration:1.3,ease:'power3.out'},0.22);
+tl.from('#li-tag', {autoAlpha:0,y:10,duration:0.9,ease:'power2.out'},0.9);
+tl.to('#li-logo',  {autoAlpha:0,scale:1.05,duration:0.7,ease:'power2.in'},3.1);
+tl.to('#li-glow',  {autoAlpha:0,duration:0.7,ease:'power2.in'},3.0);
+tl.to('#li-tag',   {autoAlpha:0,duration:0.45,ease:'power2.in'},3.1);
+
+/* ===== S1 TITLE T=4 real=5s ===== */
+fin('#s1-w',4.0,0.4);
+fout('#s1-w',8.6,0.4);
+tl.fromTo('#s1-orb',{scale:1.0,opacity:0.18},{scale:1.22,opacity:0.30,duration:2.5,ease:'power1.inOut',yoyo:true,repeat:1},4.0);
+tl.fromTo('#s1-scan',{x:-100,opacity:0},{x:2000,opacity:0.06,duration:5,ease:'none'},4.0);
+fin('#s1-cat',4.2,0.5);
+rev('#s1-w1',4.45);
+rev('#s1-w2',4.68);
+fin('#s1-sub',5.0,0.7);
+fin('#s1-deco',4.3,1.5);
+
+/* ===== S2 DIAGRAM DEF T=9 real=7s ===== */
+fin('#s2-w',9.0,0.4);
+fout('#s2-w',15.6,0.4);
+tl.fromTo('#s2-orb',{scale:1.0,opacity:0.14},{scale:1.18,opacity:0.24,duration:3.5,ease:'power1.inOut',yoyo:true,repeat:1},9.0);
+tl.fromTo('#s2-scan',{x:-100,opacity:0},{x:2000,opacity:0.05,duration:7,ease:'none'},9.0);
+fin('#s2-cat',9.2,0.5);
+rev('#s2-hl',9.38);
+tl.from('#s2-nc',{scale:0,svgOrigin:'420 190',autoAlpha:0,duration:0.6,ease:'back.out(1.7)'},9.6);
+tl.to('#s2-l1',{attr:{strokeDashoffset:0},duration:0.55,ease:'power2.inOut'},9.9);
+tl.to('#s2-l2',{attr:{strokeDashoffset:0},duration:0.55,ease:'power2.inOut'},10.05);
+tl.to('#s2-l3',{attr:{strokeDashoffset:0},duration:0.55,ease:'power2.inOut'},10.2);
+tl.to('#s2-l4',{attr:{strokeDashoffset:0},duration:0.55,ease:'power2.inOut'},10.35);
+tl.from('#s2-n1',{scale:0,svgOrigin:'140 90', autoAlpha:0,duration:0.45,ease:'back.out(1.5)'},10.15);
+tl.from('#s2-n2',{scale:0,svgOrigin:'700 90', autoAlpha:0,duration:0.45,ease:'back.out(1.5)'},10.3);
+tl.from('#s2-n3',{scale:0,svgOrigin:'140 300',autoAlpha:0,duration:0.45,ease:'back.out(1.5)'},10.45);
+tl.from('#s2-n4',{scale:0,svgOrigin:'700 300',autoAlpha:0,duration:0.45,ease:'back.out(1.5)'},10.6);
+
+/* ===== S3 IMAGE TURING T=16 real=6s ===== */
+tl.fromTo('#s3-img',{scale:1.07},{scale:1.0,duration:6,ease:'power1.inOut'},16);
+fin('#s3-w',16.0,0.5);
+fout('#s3-w',21.6,0.4);
+tl.fromTo('#s3-scan',{x:-100,opacity:0},{x:2000,opacity:0.05,duration:6,ease:'none'},16.0);
+fin('#s3-cat',16.25,0.5);
+rev('#s3-w1',16.45);
+rev('#s3-w2',16.70);
+tl.from('#s3-vl',{scaleY:0,transformOrigin:'top',duration:0.65,ease:'power2.out'},17.05);
+fin('#s3-sub',17.25,0.7);
+fin('#s3-year',16.6,1.8);
+
+/* ===== S4 DIAGRAM TIPI T=22 real=8s ===== */
+fin('#s4-w',22.0,0.4);
+fout('#s4-w',29.6,0.4);
+tl.fromTo('#s4-orb',{scale:1.0,opacity:0.14},{scale:1.20,opacity:0.26,duration:4,ease:'power1.inOut',yoyo:true,repeat:1},22.0);
+tl.fromTo('#s4-scan',{x:-100,opacity:0},{x:2000,opacity:0.05,duration:8,ease:'none'},22.0);
+fin('#s4-cat',22.2,0.5);
+rev('#s4-hl',22.38);
+tl.to('#s4-base',{attr:{strokeDashoffset:0},duration:1.2,ease:'power2.inOut'},22.7);
+tl.from('#s4-n1',{scale:0,svgOrigin:'60 110', autoAlpha:0,duration:0.4,ease:'back.out(1.5)'},22.9);
+tl.from('#s4-n2',{scale:0,svgOrigin:'240 110',autoAlpha:0,duration:0.4,ease:'back.out(1.5)'},23.2);
+tl.from('#s4-n3',{scale:0,svgOrigin:'420 110',autoAlpha:0,duration:0.5,ease:'back.out(1.7)'},23.5);
+tl.from('#s4-n4',{scale:0,svgOrigin:'600 110',autoAlpha:0,duration:0.4,ease:'back.out(1.5)'},23.8);
+tl.from('#s4-n5',{scale:0,svgOrigin:'780 110',autoAlpha:0,duration:0.4,ease:'back.out(1.5)'},24.1);
+
+/* ===== S5 BROWSER T=30 real=6s ===== */
+fin('#s5-w',30.0,0.4);
+fout('#s5-w',35.6,0.4);
+tl.fromTo('#s5-orb',{scale:1.0,opacity:0.11},{scale:1.14,opacity:0.20,duration:3,ease:'power1.inOut',yoyo:true,repeat:1},30.0);
+tl.fromTo('#s5-scan',{x:-100,opacity:0},{x:2000,opacity:0.05,duration:6,ease:'none'},30.0);
+fin('#s5-cat',30.2,0.5);
+rev('#s5-hl',30.4);
+tl.from('#s5-browser',{autoAlpha:0,y:28,duration:0.85,ease:'power3.out'},30.8);
+fin('#s5-sub',31.4,0.6);
+
+/* ===== S6 DIAGRAM ML T=36 real=7s ===== */
+fin('#s6-w',36.0,0.4);
+fout('#s6-w',42.6,0.4);
+tl.fromTo('#s6-orb',{scale:1.0,opacity:0.14},{scale:1.18,opacity:0.24,duration:3.5,ease:'power1.inOut',yoyo:true,repeat:1},36.0);
+tl.fromTo('#s6-scan',{x:-100,opacity:0},{x:2000,opacity:0.05,duration:7,ease:'none'},36.0);
+fin('#s6-cat',36.2,0.5);
+rev('#s6-hl',36.38);
+tl.from('#s6-b1',{autoAlpha:0,x:-28,duration:0.5,ease:'power2.out'},36.7);
+tl.to('#s6-a1',{attr:{strokeDashoffset:0},duration:0.38,ease:'power2.inOut'},37.05);
+fin('#s6-p1',37.35,0.2);
+tl.from('#s6-b2',{autoAlpha:0,x:-22,duration:0.5,ease:'power2.out'},37.3);
+tl.to('#s6-a2',{attr:{strokeDashoffset:0},duration:0.38,ease:'power2.inOut'},37.65);
+fin('#s6-p2',37.95,0.2);
+tl.from('#s6-b3',{autoAlpha:0,x:-22,duration:0.5,ease:'power2.out'},37.9);
+tl.to('#s6-a3',{attr:{strokeDashoffset:0},duration:0.38,ease:'power2.inOut'},38.25);
+fin('#s6-p3',38.55,0.2);
+tl.from('#s6-b4',{autoAlpha:0,x:-22,duration:0.5,ease:'power2.out'},38.5);
+
+/* ===== S7 STAT T=43 real=6s ===== */
+fin('#s7-w',43.0,0.4);
+fout('#s7-w',48.6,0.4);
+tl.fromTo('#s7-orb',{scale:1.0,opacity:0.20},{scale:1.22,opacity:0.32,duration:3,ease:'power1.inOut',yoyo:true,repeat:1},43.0);
+tl.fromTo('#s7-scan',{x:-100,opacity:0},{x:2000,opacity:0.05,duration:6,ease:'none'},43.0);
+fin('#s7-cat',43.2,0.5);
+var c7={val:0};
+tl.to(c7,{val:100,duration:1.8,ease:'power2.out',onUpdate:function(){
+  var el=document.getElementById('s7-num');
+  if(el) el.textContent=Math.round(c7.val).toLocaleString('it-IT');
+}},43.4);
+fin('#s7-unit',43.8,0.6);
+rev('#s7-label',44.1);
+tl.from('#s7-rule',{scaleX:0,transformOrigin:'center',duration:0.7,ease:'power3.inOut'},44.55);
+fin('#s7-src',44.85,0.5);
+
+/* ===== S8 SPLIT T=49 real=7s ===== */
+fin('#s8-w',49.0,0.4);
+fout('#s8-w',55.6,0.4);
+tl.fromTo('#s8-scan',{x:-100,opacity:0},{x:2000,opacity:0.05,duration:7,ease:'none'},49.0);
+fin('#s8-cat',49.2,0.5);
+rev('#s8-hl',49.4);
+tl.from('#s8-vdiv',{scaleY:0,transformOrigin:'top',duration:0.8,ease:'power2.out'},49.85);
+fin('#s8-lcat',50.05,0.4);
+fin('#s8-l1',50.25,0.5);
+fin('#s8-l2',50.45,0.5);
+fin('#s8-l3',50.65,0.5);
+fin('#s8-l4',50.85,0.5);
+fin('#s8-rcat',50.05,0.4);
+fin('#s8-r1',50.35,0.5);
+fin('#s8-r2',50.55,0.5);
+fin('#s8-r3',50.75,0.5);
+fin('#s8-r4',50.95,0.5);
+
+/* ===== S9 IMAGE FUTURO T=56 real=6s ===== */
+tl.fromTo('#s9-img',{scale:1.07},{scale:1.0,duration:6,ease:'power1.inOut'},56);
+fin('#s9-w',56.0,0.5);
+fout('#s9-w',61.6,0.4);
+tl.fromTo('#s9-scan',{x:-100,opacity:0},{x:2000,opacity:0.05,duration:6,ease:'none'},56.0);
+fin('#s9-cat',56.25,0.5);
+rev('#s9-w1',56.45);
+rev('#s9-w2',56.70);
+rev('#s9-w3',56.95);
+fin('#s9-sub',57.3,0.7);
+fin('#s9-deco',56.5,1.8);
+
+/* ===== S10 QUOTE T=62 real=6s ===== */
+fin('#s10-w',62.0,0.4);
+fout('#s10-w',67.6,0.4);
+tl.fromTo('#s10-orb',{scale:1.0,opacity:0.11},{scale:1.15,opacity:0.20,duration:3,ease:'power1.inOut',yoyo:true,repeat:1},62.0);
+tl.fromTo('#s10-scan',{x:-100,opacity:0},{x:2000,opacity:0.05,duration:6,ease:'none'},62.0);
+fin('#s10-cat',62.2,0.5);
+tl.from('#s10-rule1',{scaleX:0,transformOrigin:'center',duration:0.6,ease:'power3.inOut'},62.42);
+rev('#s10-q1',62.68);
+rev('#s10-q2',62.92);
+rev('#s10-q3',63.38);
+rev('#s10-q4',63.62);
+tl.from('#s10-rule2',{scaleX:0,transformOrigin:'center',duration:0.6,ease:'power3.inOut'},64.05);
+fin('#s10-next',64.35,0.7);
+
+/* ===== LOGO OUTRO T=68 ===== */
+tl.from('#lo-glow',{autoAlpha:0,scale:0.6,duration:1.8,ease:'power2.out'},68.05);
+tl.from('#lo-logo',{autoAlpha:0,scale:0.9,duration:1.0,ease:'power3.out'},68.2);
+tl.from('#lo-sub', {autoAlpha:0,y:12,duration:0.8,ease:'power2.out'},68.7);
+tl.from('#lo-tag', {autoAlpha:0,duration:0.7,ease:'power2.out'},69.0);
+
+window.__timelines['main'] = tl;
+</script>
+</body>
+</html>

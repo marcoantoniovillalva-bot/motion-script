@@ -1,6 +1,7 @@
 import React from 'react';
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from 'remotion';
 import { motionConfig } from '../motion-config';
+import { isLightColor } from '../colorUtils';
 import type { MotionScriptScene } from '../motion-script-types';
 import { TechBackground } from './TechBackground';
 import { useTechTransition } from './useTechTransition';
@@ -63,6 +64,9 @@ export const ChatScene: React.FC<{ scene: MotionScriptScene }> = ({ scene }) => 
 
   const { style: techStyle, scanY, scanOpacity } = useTechTransition({ sceneDuration: scene.end - scene.start });
 
+  // Chat UI is dark-mode only — ignore any light bg assigned by the parser
+  const chatBg = isLightColor(scene.bg ?? '') ? '#0A0A14' : (scene.bg ?? '#070710');
+
   const fontSize = isVertical ? 36 : 27;
   const labelSize = isVertical ? 22 : 16;
   const bubbleMaxWidth = isVertical ? width * 0.8 : width * 0.55;
@@ -73,13 +77,14 @@ export const ChatScene: React.FC<{ scene: MotionScriptScene }> = ({ scene }) => 
 
   return (
     <AbsoluteFill>
-      <TechBackground bg={scene.bg ?? '#070710'} scanY={scanY} scanOpacity={scanOpacity} />
+      <TechBackground bg={chatBg} scanY={scanY} scanOpacity={scanOpacity} />
 
       <AbsoluteFill style={{
         ...techStyle,
         display: 'flex',
         flexDirection: 'column',
-        justifyContent: 'center',
+        // Vertical: anchor conversation lower (near where an input would be) to kill the empty void
+        justifyContent: isVertical ? 'flex-end' : 'center',
         padding: `${paddingV}px ${paddingH}px`,
         gap,
       }}>

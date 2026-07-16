@@ -22,7 +22,8 @@ export const CodeScene: React.FC<{ scene: MotionScriptScene }> = ({ scene }) => 
   const windowIn = spring({ frame, fps, config: { stiffness: 160, damping: 16, mass: 0.9 } });
   const headlineOpacity = spring({ frame: Math.max(0, frame - 6), fps, config: { stiffness: 120, damping: 18 } });
 
-  const bg = scene.bg ?? p.dark;
+  // Terminal is always dark — ignore any light bg from the parser
+  const bg = '#0d1117';
   const isVertical = height > width;
   const codeSize = isVertical ? 32 : 26;
   const terminalW = isVertical ? '90%' : '80%';

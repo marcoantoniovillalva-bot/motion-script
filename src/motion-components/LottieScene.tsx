@@ -3,8 +3,11 @@ import { AbsoluteFill, continueRender, delayRender, spring, staticFile, useCurre
 import { Lottie } from '@remotion/lottie';
 import type { LottieAnimationData } from '@remotion/lottie';
 import { motionConfig } from '../motion-config';
+import { isLightColor } from '../colorUtils';
 import type { MotionScriptScene } from '../motion-script-types';
 import { TechBackground } from './TechBackground';
+import { LightBackground } from './LightBackground';
+import { GlassCard } from './GlassCard';
 import { useTechTransition } from './useTechTransition';
 
 const LottiePlayer: React.FC<{ src: string; loop?: boolean; speed?: number; size: number }> = ({
@@ -50,11 +53,49 @@ export const LottieScene: React.FC<{ scene: MotionScriptScene }> = ({ scene }) =
   const subtextEntry  = spring({ frame: Math.max(0, frame - 16), fps, config: { stiffness: 110, damping: 20 } });
 
   const isVertical   = height > width;
-  const lottieSizePx = isVertical ? Math.min(width * 0.75, 620) : Math.min(height * 0.6, 480);
+  const isLight      = isLightColor(scene.bg ?? '#090909');
+  const lottieSizePx = isVertical ? Math.min(width * 0.82, 780) : Math.min(height * 0.68, 540);
+
+  const textBlock = (
+    <>
+      {scene.headline && (
+        <div style={{
+          color: isLight ? '#1C1C1E' : '#FFFFFF',
+          fontFamily: cfg.fonts.headline,
+          fontSize: isVertical ? 64 : 62,
+          fontWeight: 900,
+          textAlign: 'center',
+          textTransform: 'uppercase',
+          letterSpacing: '3px',
+          opacity: headlineEntry,
+          transform: `translateY(${(1 - headlineEntry) * 30}px)`,
+          maxWidth: isVertical ? undefined : 860,
+        }}>
+          {scene.headline}
+        </div>
+      )}
+      {scene.subtext && (
+        <div style={{
+          color: isLight ? 'rgba(28,28,30,0.6)' : 'rgba(255,255,255,0.5)',
+          fontFamily: cfg.fonts.code,
+          fontSize: isVertical ? 30 : 28,
+          textAlign: 'center',
+          letterSpacing: '1.5px',
+          opacity: subtextEntry,
+          maxWidth: isVertical ? undefined : 800,
+        }}>
+          {scene.subtext}
+        </div>
+      )}
+    </>
+  );
 
   return (
     <AbsoluteFill>
-      <TechBackground bg={scene.bg} scanY={scanY} scanOpacity={scanOpacity} />
+      {isLight
+        ? <LightBackground scanY={scanY} scanOpacity={scanOpacity} />
+        : <TechBackground bg={scene.bg} scanY={scanY} scanOpacity={scanOpacity} />
+      }
 
       <AbsoluteFill style={{
         ...techStyle,
@@ -74,34 +115,18 @@ export const LottieScene: React.FC<{ scene: MotionScriptScene }> = ({ scene }) =
           />
         )}
 
-        {scene.headline && (
-          <div style={{
-            color: '#FFFFFF',
-            fontFamily: cfg.fonts.headline,
-            fontSize: isVertical ? 64 : 52,
-            fontWeight: 900,
-            textAlign: 'center',
-            textTransform: 'uppercase',
-            letterSpacing: '3px',
-            opacity: headlineEntry,
-            transform: `translateY(${(1 - headlineEntry) * 30}px)`,
+        {isLight ? (
+          <GlassCard style={{
+            padding: isVertical ? '28px 36px' : '22px 44px',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 12,
+            maxWidth: isVertical ? undefined : 860,
           }}>
-            {scene.headline}
-          </div>
-        )}
-
-        {scene.subtext && (
-          <div style={{
-            color: 'rgba(255,255,255,0.5)',
-            fontFamily: cfg.fonts.code,
-            fontSize: isVertical ? 30 : 24,
-            textAlign: 'center',
-            letterSpacing: '1.5px',
-            opacity: subtextEntry,
-          }}>
-            {scene.subtext}
-          </div>
-        )}
+            {textBlock}
+          </GlassCard>
+        ) : textBlock}
       </AbsoluteFill>
     </AbsoluteFill>
   );

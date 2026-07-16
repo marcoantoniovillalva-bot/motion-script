@@ -1,5 +1,5 @@
 import React from 'react';
-import { AbsoluteFill, Img, interpolate, spring, staticFile, useCurrentFrame, useVideoConfig } from 'remotion';
+import { AbsoluteFill, Easing, Img, interpolate, staticFile, useCurrentFrame, useVideoConfig } from 'remotion';
 import { motionConfig } from '../motion-config';
 import type { MotionScriptScene } from '../motion-script-types';
 
@@ -51,14 +51,16 @@ export const ImageScene: React.FC<{ scene: MotionScriptScene }> = ({ scene }) =>
   const count = srcs.length;
   const sliceDuration = count > 0 ? totalFrames / count : totalFrames;
 
-  // Text animations
-  const textEntry = spring({ frame: Math.max(0, frame - 8), fps, config: { stiffness: 120, damping: 18 } });
-  const subtextEntry = spring({ frame: Math.max(0, frame - 18), fps, config: { stiffness: 100, damping: 20 } });
+  // Text animations — interpolate + bezier ease-out (Remotion best practice: prefer interpolate over spring)
+  const EASE_OUT = Easing.bezier(0.16, 1, 0.3, 1);
+  const textEntry = interpolate(frame, [8, 30], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp', easing: EASE_OUT });
+  const subtextEntry = interpolate(frame, [18, 40], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp', easing: EASE_OUT });
 
-  const headlineSize = isVertical ? 78 : 64;
-  const subtextSize = isVertical ? 38 : 30;
+  const headlineSize = isVertical ? 78 : 74;
+  const subtextSize = isVertical ? 38 : 34;
   const paddingH = isVertical ? 56 : 80;
-  const paddingB = isVertical ? 80 : 60;
+  const paddingB = isVertical ? 80 : 70;
+  const paddingT = isVertical ? 100 : 70; // top offset for vertical description (safe from social top UI)
 
   // Build per-image opacity with cross-fade
   const imageOpacities = srcs.map((_, i) => {
@@ -95,21 +97,31 @@ export const ImageScene: React.FC<{ scene: MotionScriptScene }> = ({ scene }) =>
         <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(135deg, ${scene.bg ?? '#1a1a2e'}, #16213e)` }} />
       )}
 
-      {/* Gradient overlays for text legibility */}
+      {/* Gradient overlays for text legibility — vertical darkens the TOP (text on top),
+          horizontal darkens the BOTTOM (text on bottom) */}
       <div style={{
         position: 'absolute', inset: 0,
-        background: 'linear-gradient(to bottom, rgba(0,0,0,0.12) 0%, rgba(0,0,0,0.0) 35%, rgba(0,0,0,0.88) 100%)',
+        background: isVertical
+          ? 'linear-gradient(to bottom, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.35) 30%, rgba(0,0,0,0.0) 55%, rgba(0,0,0,0.45) 100%)'
+          : 'linear-gradient(to bottom, rgba(0,0,0,0.12) 0%, rgba(0,0,0,0.0) 35%, rgba(0,0,0,0.88) 100%)',
       }} />
       <div style={{
         position: 'absolute', inset: 0,
         background: 'linear-gradient(to right, rgba(0,0,0,0.45) 0%, transparent 55%)',
       }} />
+      {/* Vertical: uniform scrim to deepen washed-out / high-key stock photos */}
+      {isVertical && (
+        <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.24)' }} />
+      )}
 
-      {/* Text block — bottom */}
+      {/* Text block — vertical: TOP-LEFT (bottom-left is covered by social UI/captions);
+          horizontal: bottom, centered in 9:16 safe zone */}
       <div style={{
         position: 'absolute',
-        bottom: 0, left: 0, right: 0,
-        padding: `0 ${paddingH}px ${paddingB}px`,
+        ...(isVertical
+          ? { top: paddingT, left: paddingH, right: paddingH, textAlign: 'left' }
+          : { bottom: 0, left: '50%', transform: 'translateX(-50%)', width: 860, paddingBottom: paddingB }
+        ),
       }}>
         {scene.headline && (
           <div style={{
@@ -142,17 +154,18 @@ export const ImageScene: React.FC<{ scene: MotionScriptScene }> = ({ scene }) =>
         )}
       </div>
 
-      {/* Accent bar — left */}
+      {/* Accent bar — pairs with the description: top-left in vertical, lower-left decorative in horizontal */}
       <div style={{
         position: 'absolute',
-        left: paddingH - 20,
-        bottom: paddingB,
-        top: '60%',
         width: 4,
         background: cfg.palette.primary,
         boxShadow: `0 0 12px 2px ${cfg.palette.primary}88`,
         opacity: textEntry,
         borderRadius: 2,
+        ...(isVertical
+          ? { left: paddingH - 18, top: paddingT, height: 132 }
+          : { left: 120, top: '60%', bottom: paddingB }
+        ),
       }} />
 
       {/* Slide counter dots — bottom center (only if multiple images) */}
@@ -173,7 +186,6 @@ export const ImageScene: React.FC<{ scene: MotionScriptScene }> = ({ scene }) =>
                 height: 4,
                 borderRadius: 2,
                 background: i === activeIdx ? cfg.palette.primary : 'rgba(255,255,255,0.3)',
-                transition: 'all 0.3s',
               }} />
             );
           })}

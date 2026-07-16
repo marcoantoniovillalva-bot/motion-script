@@ -148,8 +148,8 @@ def process_folder(folder: Path, force: bool = False) -> dict:
     image_path = find_image_in_folder(folder)
     image_bytes = image_path.read_bytes() if image_path else None
 
-    # Detect format from folder name or default vertical
-    fmt = "horizontal" if "horizontal" in name.lower() or "orizzontale" in name.lower() else "vertical"
+    # Detect format from folder name — default horizontal (all Marketizzati content is 16:9)
+    fmt = "vertical" if "vertical" in name.lower() or "verticale" in name.lower() else "horizontal"
 
     # Detect title: strip leading number "5. " prefix
     title_match = re.match(r"^\d+\.\s*(.+)$", name)

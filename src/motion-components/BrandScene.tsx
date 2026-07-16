@@ -1,5 +1,5 @@
 import React from 'react';
-import { AbsoluteFill, Img, interpolate, spring, staticFile, useCurrentFrame, useVideoConfig } from 'remotion';
+import { AbsoluteFill, Easing, Img, interpolate, staticFile, useCurrentFrame, useVideoConfig } from 'remotion';
 import type { MotionScriptScene } from '../motion-script-types';
 
 // ─── Brand visual presets ──────────────────────────────────────────────────────
@@ -117,12 +117,13 @@ const TypedText: React.FC<{ text: string; frame: number; startFrame: number; cha
       {showCursor && (
         <span style={{
           display: 'inline-block',
-          width: 2,
+          width: Math.max(2, Math.round(fontSize * 0.08)),
           height: fontSize * 1.1,
           background: color,
           marginLeft: 2,
           verticalAlign: 'middle',
-          opacity: Math.floor(frame / 8) % 2 === 0 ? 1 : 0,
+          borderRadius: 1,
+          opacity: 0.35 + 0.65 * ((Math.sin(frame * 0.32) + 1) / 2),
         }} />
       )}
     </span>
@@ -178,8 +179,8 @@ export const BrandScene: React.FC<{ scene: MotionScriptScene }> = ({ scene }) =>
   const THINK_START = USER_START + Math.ceil(visual.prompt.length / 1.2) + 6;
   const AI_START    = THINK_START + 20;
 
-  // Entrance springs
-  const windowSpring = spring({ frame, fps, config: { stiffness: 120, damping: 18 } });
+  // Entrance — interpolate + bezier ease-out (Remotion best practice: prefer interpolate over spring)
+  const windowSpring = interpolate(frame, [0, 20], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp', easing: Easing.bezier(0.16, 1, 0.3, 1) });
   const sidebarOpacity = interpolate(frame, [SIDEBAR_IN, SIDEBAR_IN + 10], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
   const headerOpacity  = interpolate(frame, [HEADER_IN, HEADER_IN + 8], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
   const userOpacity    = interpolate(frame, [USER_START - 2, USER_START + 4], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
@@ -193,8 +194,9 @@ export const BrandScene: React.FC<{ scene: MotionScriptScene }> = ({ scene }) =>
   const fadeOut = interpolate(frame, [sceneDurationFrames - 10, sceneDurationFrames], [1, 0], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
 
   const fontFamily = "'Segoe UI', system-ui, -apple-system, sans-serif";
-  const fontSize   = isVertical ? 22 : 18;
+  const fontSize   = isVertical ? 32 : 18;
   const sidebarW   = isVertical ? 220 : 260;
+  const avatarSize = isVertical ? 46 : 30;
 
   const scale = 0.88 + windowSpring * 0.12;
 
@@ -209,7 +211,7 @@ export const BrandScene: React.FC<{ scene: MotionScriptScene }> = ({ scene }) =>
       {/* Browser chrome outer */}
       <div style={{
         width: isVertical ? '92%' : '90%',
-        height: isVertical ? '82%' : '84%',
+        height: isVertical ? '56%' : '84%',
         borderRadius: 14,
         overflow: 'hidden',
         boxShadow: `0 30px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.08)`,
@@ -300,14 +302,15 @@ export const BrandScene: React.FC<{ scene: MotionScriptScene }> = ({ scene }) =>
               <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#3dd68c' }} />
             </div>
 
-            {/* Messages area */}
+            {/* Messages area — in vertical anchored to the bottom (near input) to kill empty space */}
             <div style={{
               flex: 1,
               overflowY: 'hidden',
-              padding: isVertical ? '20px 16px' : '24px 20px',
+              padding: isVertical ? '20px 22px' : '24px 20px',
               display: 'flex',
               flexDirection: 'column',
-              gap: 20,
+              justifyContent: isVertical ? 'flex-end' : 'flex-start',
+              gap: isVertical ? 28 : 20,
             }}>
 
               {/* User message */}
@@ -335,8 +338,8 @@ export const BrandScene: React.FC<{ scene: MotionScriptScene }> = ({ scene }) =>
                   />
                 </div>
                 <div style={{
-                  width: isVertical ? 34 : 30,
-                  height: isVertical ? 34 : 30,
+                  width: avatarSize,
+                  height: avatarSize,
                   borderRadius: '50%',
                   background: '#555',
                   display: 'flex',
@@ -344,7 +347,7 @@ export const BrandScene: React.FC<{ scene: MotionScriptScene }> = ({ scene }) =>
                   justifyContent: 'center',
                   flexShrink: 0,
                   color: '#fff',
-                  fontSize: 13,
+                  fontSize: isVertical ? 18 : 13,
                   fontFamily,
                 }}>U</div>
               </div>
@@ -358,8 +361,8 @@ export const BrandScene: React.FC<{ scene: MotionScriptScene }> = ({ scene }) =>
                   opacity: Math.max(thinkOpacity, aiOpacity),
                 }}>
                   <div style={{
-                    width: isVertical ? 34 : 30,
-                    height: isVertical ? 34 : 30,
+                    width: avatarSize,
+                    height: avatarSize,
                     borderRadius: '50%',
                     background: visual.iconSrc ? 'rgba(255,255,255,0.12)' : theme.avatarBg,
                     display: 'flex',
@@ -367,7 +370,7 @@ export const BrandScene: React.FC<{ scene: MotionScriptScene }> = ({ scene }) =>
                     justifyContent: 'center',
                     flexShrink: 0,
                     color: '#fff',
-                    fontSize: 13,
+                    fontSize: isVertical ? 18 : 13,
                     fontFamily,
                     fontWeight: 700,
                     overflow: 'hidden',
